@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.hasSize;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ import java.util.Map;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -32,7 +33,8 @@ public class UserControllerTest {
     private static final String CONTENT_TYPE = "application/json";
 
     @Test
-    public void test001ShouldCreateCorrectUser() throws Exception {
+    @Order(1)
+    public void shouldCreateCorrectUser() throws Exception {
         String name = "Ivan Ivanov";
         String email = "cool@hacker.ru";
         long expectedId = 1L;
@@ -49,7 +51,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test002ShouldReturnConflictWithDuplicatedEmail() throws Exception {
+    @Order(2)
+    public void shouldReturnConflictWithDuplicatedEmail() throws Exception {
         String body = createJson("John Johnson", "cool@hacker.ru");
 
         mockMvc.perform(post(ENDPOINT)
@@ -60,7 +63,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test003ShouldReturnBadRequestWithoutEmail() throws Exception {
+    @Order(3)
+    public void shouldReturnBadRequestWithoutEmail() throws Exception {
         String body = createJson("Somebody", null);
 
         mockMvc.perform(post(ENDPOINT)
@@ -71,7 +75,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test004ShouldReturnBadRequestWithBadEmail() throws Exception {
+    @Order(4)
+    public void shouldReturnBadRequestWithBadEmail() throws Exception {
         String body = createJson("Somebody", "smb.com");
 
         mockMvc.perform(post(ENDPOINT)
@@ -82,7 +87,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test005ShouldUpdateFirstUser() throws Exception {
+    @Order(5)
+    public void shouldUpdateFirstUser() throws Exception {
         String name = "Ivan Ivanovich Ivanov";
         String email = "advanced@developer.ru";
         long expectedId = 1L;
@@ -100,7 +106,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test006ShouldCreateCorrectSecondUser() throws Exception {
+    @Order(6)
+    public void shouldCreateCorrectSecondUser() throws Exception {
         String name = "James Hetfield";
         String email = "admin@metallica.com";
         long expectedId = 2L;
@@ -117,7 +124,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test007ShouldUpdateFirstUserOnlyName() throws Exception {
+    @Order(7)
+    public void shouldUpdateFirstUserOnlyName() throws Exception {
         String name = "Professor Ivanov";
         String email = "advanced@developer.ru";
         long expectedId = 1L;
@@ -136,7 +144,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test008ShouldUpdateFirstUserOnlyEmail() throws Exception {
+    @Order(8)
+    public void shouldUpdateFirstUserOnlyEmail() throws Exception {
         String name = "Professor Ivanov";
         String email = "ceo@it.com";
         long expectedId = 1L;
@@ -154,7 +163,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test009ShouldUpdateFirstUserWithSameEmail() throws Exception {
+    @Order(9)
+    public void shouldUpdateFirstUserWithSameEmail() throws Exception {
         String name = "Professor Ivanov";
         String email = "ceo@it.com";
         long expectedId = 1L;
@@ -172,7 +182,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test010ShouldReturnConflictWhenUpdateWithDuplicatedEmail() throws Exception {
+    @Order(10)
+    public void shouldReturnConflictWhenUpdateWithDuplicatedEmail() throws Exception {
         String name = "Professor Ivanov";
         String email = "admin@metallica.com";
         long expectedId = 1L;
@@ -186,7 +197,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test011ShouldReturnFirstUser() throws Exception {
+    @Order(11)
+    public void shouldReturnFirstUser() throws Exception {
         String name = "Professor Ivanov";
         String email = "ceo@it.com";
         long expectedId = 1L;
@@ -200,7 +212,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test012ShouldReturnSecondUser() throws Exception {
+    @Order(12)
+    public void shouldReturnSecondUser() throws Exception {
         String name = "James Hetfield";
         String email = "admin@metallica.com";
         long expectedId = 2L;
@@ -214,7 +227,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test013ShouldReturnTwoUsers() throws Exception {
+    @Order(13)
+    public void shouldReturnTwoUsers2() throws Exception {
         mockMvc.perform(get(ENDPOINT))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -222,7 +236,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test014ShouldDeleteSecondUser() throws Exception {
+    @Order(14)
+    public void shouldDeleteSecondUser() throws Exception {
         long expectedId = 2L;
 
         mockMvc.perform(delete(ENDPOINT + "/" + expectedId))
@@ -231,7 +246,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test015ShouldReturnOneUser() throws Exception {
+    @Order(15)
+    public void shouldReturnOneUser() throws Exception {
         mockMvc.perform(get(ENDPOINT))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -239,7 +255,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test016ShouldCreateAnotherUser() throws Exception {
+    @Order(16)
+    public void shouldCreateAnotherUser() throws Exception {
         String name = "Jason Statham";
         String email = "noone@knows.com";
         long expectedId = 3L;
@@ -256,7 +273,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test017ShouldReturnTwoUsers() throws Exception {
+    @Order(17)
+    public void shouldReturnTwoUsers() throws Exception {
         mockMvc.perform(get(ENDPOINT))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -264,7 +282,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test018ShouldCreateUserAndIgnoreIdFromRequest() throws Exception {
+    @Order(18)
+    public void shouldCreateUserAndIgnoreIdFromRequest() throws Exception {
         String name = "Lady Gaga";
         String email = "info@music.com";
         Long requestId = 999L;
@@ -282,7 +301,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void test019ShouldReturnThreeUsers() throws Exception {
+    @Order(19)
+    public void shouldReturnThreeUsers() throws Exception {
         mockMvc.perform(get(ENDPOINT))
                 .andDo(print())
                 .andExpect(status().isOk())

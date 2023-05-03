@@ -3,6 +3,7 @@ package ru.practicum.shareit;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ItemControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -30,7 +31,8 @@ public class ItemControllerTest {
     private static final String HEADER_OWNER_ID = "X-Sharer-User-Id";
 
     @Test
-    public void test001ShouldCreateCorrectItem() throws Exception {
+    @Order(1)
+    public void shouldCreateCorrectItem() throws Exception {
         String name = "Дрель";
         String description = "Простая дрель";
         Boolean available = true;
@@ -52,7 +54,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test002ShouldReturnBadRequestWithoutOwner() throws Exception {
+    @Order(2)
+    public void shouldReturnBadRequestWithoutOwner() throws Exception {
         String name = "Дрель";
         String description = "Простая дрель";
         Boolean available = true;
@@ -66,7 +69,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test003ShouldReturnNotFoundWithUnknownUser() throws Exception {
+    @Order(3)
+    public void shouldReturnNotFoundWithUnknownUser() throws Exception {
         String name = "Дрель";
         String description = "Простая дрель";
         Boolean available = true;
@@ -82,7 +86,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test004ShouldReturnBadRequestWithoutAvailable() throws Exception {
+    @Order(4)
+    public void shouldReturnBadRequestWithoutAvailable() throws Exception {
         String name = "Дрель";
         String description = "Простая дрель";
         long ownerId = 1L;
@@ -98,7 +103,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test005ShouldReturnBadRequestWithEmptyName() throws Exception {
+    @Order(5)
+    public void shouldReturnBadRequestWithEmptyName() throws Exception {
         String name = "";
         String description = "Простая дрель";
         Boolean available = true;
@@ -115,7 +121,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test006ShouldReturnBadRequestWithBlankName() throws Exception {
+    @Order(6)
+    public void shouldReturnBadRequestWithBlankName() throws Exception {
         String name = "    ";
         String description = "Простая дрель";
         Boolean available = true;
@@ -132,7 +139,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test007ShouldReturnBadRequestWithEmptyDescription() throws Exception {
+    @Order(7)
+    public void shouldReturnBadRequestWithEmptyDescription() throws Exception {
         String name = "Дрель";
         String description = "";
         Boolean available = true;
@@ -148,8 +156,9 @@ public class ItemControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Order(8)
     @Test
-    public void test008ShouldReturnBadRequestWithBlankDescription() throws Exception {
+    public void shouldReturnBadRequestWithBlankDescription() throws Exception {
         String name = "Дрель";
         String description = "   ";
         Boolean available = true;
@@ -165,9 +174,9 @@ public class ItemControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-
     @Test
-    public void test009ShouldUpdateFirstItem() throws Exception {
+    @Order(9)
+    public void shouldUpdateFirstItem() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = false;
@@ -189,7 +198,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test010ShouldReturnBadRequestWhileUpdatingWithoutOwner() throws Exception {
+    @Order(10)
+    public void shouldReturnBadRequestWhileUpdatingWithoutOwner() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = false;
@@ -205,7 +215,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test011ShouldReturnForbiddenWhileUpdatingWithWrongOwner() throws Exception {
+    @Order(11)
+    public void shouldReturnForbiddenWhileUpdatingWithWrongOwner() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = false;
@@ -223,7 +234,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test012ShouldReturnFirstItemUnavailable() throws Exception {
+    @Order(12)
+    public void shouldReturnFirstItemUnavailable() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = false;
@@ -241,7 +253,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test013ShouldUpdateFirstItemOnlyAvailable() throws Exception {
+    @Order(13)
+    public void shouldUpdateFirstItemOnlyAvailable() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = true;
@@ -263,7 +276,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test014ShouldReturnFirstItemAvailable() throws Exception {
+    @Order(14)
+    public void shouldReturnFirstItemAvailable() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель";
         Boolean available = true;
@@ -281,7 +295,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test015ShouldUpdateFirstItemOnlyDescription() throws Exception {
+    @Order(15)
+    public void shouldUpdateFirstItemOnlyDescription() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -303,7 +318,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test016ShouldReturnFirstItemWithUpdatedDescription() throws Exception {
+    @Order(16)
+    public void shouldReturnFirstItemWithUpdatedDescription() throws Exception {
         String name = "Дрель+";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -321,7 +337,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test017ShouldUpdateFirstItemOnlyName() throws Exception {
+    @Order(17)
+    public void shouldUpdateFirstItemOnlyName() throws Exception {
         String name = "Аккумуляторная дрель";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -343,7 +360,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test018ShouldReturnFirstItemWithUpdatedName() throws Exception {
+    @Order(18)
+    public void shouldReturnFirstItemWithUpdatedName() throws Exception {
         String name = "Аккумуляторная дрель";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -361,7 +379,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test019ShouldCreateSecondItem() throws Exception {
+    @Order(19)
+    public void shouldCreateSecondItem() throws Exception {
         String name = "Отвертка";
         String description = "Аккумуляторная отвертка";
         Boolean available = true;
@@ -383,7 +402,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test020ShouldReturnItemsOfFirstOwner() throws Exception {
+    @Order(20)
+    public void shouldReturnItemsOfFirstOwner() throws Exception {
         String name = "Аккумуляторная дрель";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -402,7 +422,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test021ShouldReturnItemsOfSecondOwner() throws Exception {
+    @Order(21)
+    public void shouldReturnItemsOfSecondOwner() throws Exception {
         String name = "Отвертка";
         String description = "Аккумуляторная отвертка";
         Boolean available = true;
@@ -421,7 +442,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test022ShouldSearchAndReturnTwoItems() throws Exception {
+    @Order(22)
+    public void shouldSearchAndReturnTwoItems() throws Exception {
         String searchText = "аккУМУляторная";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -440,7 +462,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test023ShouldSearchAndReturnOneItem() throws Exception {
+    @Order(23)
+    public void shouldSearchAndReturnOneItem2() throws Exception {
         String searchText = "ОТВЕРтка";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -455,7 +478,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test024ShouldSearchAndReturnNoItems() throws Exception {
+    @Order(24)
+    public void shouldSearchAndReturnNoItems2() throws Exception {
         String searchText = "Астролябия";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -466,7 +490,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test025ShouldUpdateSecondItemUnavailable() throws Exception {
+    @Order(25)
+    public void shouldUpdateSecondItemUnavailable() throws Exception {
         String name = "Отвертка";
         String description = "Аккумуляторная отвертка";
         Boolean available = false;
@@ -488,7 +513,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test026ShouldSearchAndReturnOneItem() throws Exception {
+    @Order(26)
+    public void shouldSearchAndReturnOneItem() throws Exception {
         String searchText = "дрЕЛЬ";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -503,7 +529,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test027ShouldSearchAndReturnOneAvailableItem() throws Exception {
+    @Order(27)
+    public void shouldSearchAndReturnOneAvailableItem2() throws Exception {
         String searchText = "аккУМУляторная";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -517,9 +544,9 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[0].available").value(true));
     }
 
-
     @Test
-    public void test028ShouldUpdateSecondItemAvailable() throws Exception {
+    @Order(28)
+    public void shouldUpdateSecondItemAvailable() throws Exception {
         String name = "Отвертка";
         String description = "Аккумуляторная отвертка";
         Boolean available = true;
@@ -541,7 +568,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test029ShouldSearchAndReturnTwoAvailableItems() throws Exception {
+    @Order(29)
+    public void shouldSearchAndReturnTwoAvailableItems() throws Exception {
         String searchText = "аккУМУляторная";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -560,7 +588,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test030ShouldSearchAndReturnOneAvailableItem() throws Exception {
+    @Order(30)
+    public void shouldSearchAndReturnOneAvailableItem() throws Exception {
         String searchText = "оТверТ";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -575,7 +604,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test031ShouldSearchAndReturnNoItems() throws Exception {
+    @Order(31)
+    public void shouldSearchAndReturnNoItems3() throws Exception {
         String searchText = "";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -586,7 +616,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test032ShouldDeleteSecondItem() throws Exception {
+    @Order(32)
+    public void shouldDeleteSecondItem() throws Exception {
         long expectedId = 2L;
         long ownerId = 2L;
 
@@ -597,7 +628,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test033ShouldReturnOneItemOfFirstOwner() throws Exception {
+    @Order(33)
+    public void shouldReturnOneItemOfFirstOwner() throws Exception {
         String name = "Аккумуляторная дрель";
         String description = "Аккумуляторная дрель + аккумулятор";
         Boolean available = true;
@@ -615,9 +647,9 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[0].available").value(available));
     }
 
-
     @Test
-    public void test034ShouldReturnNoItemsOfSecondOwner() throws Exception {
+    @Order(34)
+    public void shouldReturnNoItemsOfSecondOwner() throws Exception {
         long ownerId = 2L;
 
         mockMvc.perform(get(ENDPOINT)
@@ -628,7 +660,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test035ShouldSearchAndReturnNoItems() throws Exception {
+    @Order(35)
+    public void shouldSearchAndReturnNoItems() throws Exception {
         String searchText = "ОТВЕРтка";
 
         mockMvc.perform(get(ENDPOINT + "/search")
@@ -639,7 +672,8 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void test036ShouldCreateItemIgnoreIdFromRequest() throws Exception {
+    @Order(36)
+    public void shouldCreateItemIgnoreIdFromRequest() throws Exception {
         String name = "Струнный мотатель";
         String description = "Великолепный мотатель фирмы Gibson";
         Boolean available = true;
@@ -661,7 +695,6 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.description").value(description))
                 .andExpect(jsonPath("$.available").value(available));
     }
-
 
     private String createJson(Object id, String name, String description, Boolean available) throws JsonProcessingException {
         Map<String, Object> object = createJsonMap(name, description, available);
