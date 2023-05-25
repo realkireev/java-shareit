@@ -15,10 +15,3 @@ public class ItemWithBookingsDto {
     private BookingInfo nextBooking;
     private Collection<CommentDto> comments;
 }
-
-@Data
-@Builder
-class BookingInfo {
-    private final Long id;
-    private final Long bookerId;
-}
