@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserControllerTest {
@@ -110,7 +112,7 @@ public class UserControllerTest {
     public void shouldCreateCorrectSecondUser() throws Exception {
         String name = "James Hetfield";
         String email = "admin@metallica.com";
-        long expectedId = 2L;
+        long expectedId = 3L;
         String body = createJson(name, email);
 
         mockMvc.perform(post(ENDPOINT)
@@ -216,7 +218,7 @@ public class UserControllerTest {
     public void shouldReturnSecondUser() throws Exception {
         String name = "James Hetfield";
         String email = "admin@metallica.com";
-        long expectedId = 2L;
+        long expectedId = 3L;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId))
                 .andDo(print())
@@ -238,7 +240,7 @@ public class UserControllerTest {
     @Test
     @Order(14)
     public void shouldDeleteSecondUser() throws Exception {
-        long expectedId = 2L;
+        long expectedId = 3L;
 
         mockMvc.perform(delete(ENDPOINT + "/" + expectedId))
                 .andDo(print())
@@ -259,7 +261,7 @@ public class UserControllerTest {
     public void shouldCreateAnotherUser() throws Exception {
         String name = "Jason Statham";
         String email = "noone@knows.com";
-        long expectedId = 3L;
+        long expectedId = 4L;
         String body = createJson(name, email);
 
         mockMvc.perform(post(ENDPOINT)
@@ -287,7 +289,7 @@ public class UserControllerTest {
         String name = "Lady Gaga";
         String email = "info@music.com";
         Long requestId = 999L;
-        long expectedId = 4L;
+        long expectedId = 5L;
         String body = createJson(requestId, name, email);
 
         mockMvc.perform(post(ENDPOINT)
@@ -310,12 +312,22 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value("Professor Ivanov"))
                 .andExpect(jsonPath("$[0].email").value("ceo@it.com"))
-                .andExpect(jsonPath("$[1].id").value(3))
+                .andExpect(jsonPath("$[1].id").value(4))
                 .andExpect(jsonPath("$[1].name").value("Jason Statham"))
                 .andExpect(jsonPath("$[1].email").value("noone@knows.com"))
-                .andExpect(jsonPath("$[2].id").value(4))
+                .andExpect(jsonPath("$[2].id").value(5))
                 .andExpect(jsonPath("$[2].name").value("Lady Gaga"))
                 .andExpect(jsonPath("$[2].email").value("info@music.com"));
+    }
+
+    @Test
+    @Order(20)
+    public void shouldReturnUserNotFound() throws Exception {
+        long expectedId = 682L;
+
+        mockMvc.perform(get(ENDPOINT + "/" + expectedId))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     private String createJson(Object id, String name, String email) throws JsonProcessingException {
