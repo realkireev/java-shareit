@@ -1,10 +1,11 @@
 package ru.practicum.shareit.booking.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
+import ru.practicum.shareit.booking.exception.BookingWrongStateRequestedException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.RequestBookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -12,20 +13,29 @@ import ru.practicum.shareit.booking.repo.BookingRepository;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repo.ItemRepository;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.repo.UserRepository;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
+    private final UserService userService;
+    private final ItemService itemService;
+
+    @Autowired
+    public BookingServiceImpl(BookingRepository bookingRepository,
+                              UserService userService,
+                              @Lazy ItemService itemService) {
+        this.bookingRepository = bookingRepository;
+        this.userService = userService;
+        this.itemService = itemService;
+    }
+
     private static final Sort SORT_BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
 
     @Override
@@ -33,11 +43,12 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(bookerId);
         booking.setBookerId(bookerId);
 
-        Optional<Item> item = itemRepository.findById(booking.getItemId());
-        if (item.isEmpty() || item.get().getOwner().getId().equals(bookerId)) {
-            throw new ItemNotFoundException(String.format("Item with id %d not found", booking.getItemId()));
+        Item item = itemService.findById(booking.getItemId());
+        if (item.getOwner().getId().equals(bookerId)) {
+            throw new ItemNotFoundException("Owner can't book the item he owns");
         }
-        if (!item.get().getAvailable()) {
+
+        if (!item.getAvailable()) {
             throw new ItemNotAvailableException(String.format("Item with id %d is not available", booking.getItemId()));
         }
 
@@ -49,52 +60,40 @@ public class BookingServiceImpl implements BookingService {
     public Booking approve(Long bookingId, Long ownerId, Boolean approved) {
         checkUserExists(ownerId);
 
-        Optional<Booking> booking = bookingRepository.findById(bookingId);
-        if (booking.isEmpty()) {
-            throw new BookingNotFoundException(String.format("Booking with id %d not found", bookingId));
-        }
-
-        Booking updatedBooking = booking.get();
-        if (!updatedBooking.getStatus().equals(BookingStatus.WAITING)) {
+        Booking booking = findById(bookingId);
+        if (!booking.getStatus().equals(BookingStatus.WAITING)) {
             throw new ItemNotAvailableException("The booking is not in WAITING status");
         }
 
-        Long itemId = updatedBooking.getItemId();
-        Optional<Item> item = itemRepository.findById(itemId);
-        if (item.isEmpty()) {
-            throw new ItemNotFoundException(String.format("Item with id %d not found", booking.get().getItemId()));
-        }
+        Long itemId = booking.getItemId();
+        Item item = itemService.findById(itemId);
 
-        Long storedOwnerId = item.get().getOwner().getId();
+        Long storedOwnerId = item.getOwner().getId();
         if (!storedOwnerId.equals(ownerId)) {
-            throw new ItemNotFoundException(String.format("Item with id %d does not belong to user with id %d", itemId, ownerId));
+            throw new ItemNotFoundException(String.format("Item with id %d does not belong to user with id %d", itemId,
+                    ownerId));
         }
 
         if (approved) {
-            updatedBooking.setStatus(BookingStatus.APPROVED);
+            booking.setStatus(BookingStatus.APPROVED);
         } else {
-            updatedBooking.setStatus(BookingStatus.REJECTED);
+            booking.setStatus(BookingStatus.REJECTED);
         }
 
-        return bookingRepository.save(updatedBooking);
+        return bookingRepository.save(booking);
     }
 
     @Override
-    public Booking findById(Long bookingId, Long userId) {
-        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
-        if (optionalBooking.isEmpty()) {
-            throw new BookingNotFoundException(String.format("Booking with id %d not found", bookingId));
-        }
-
-        Booking booking = optionalBooking.get();
+    public Booking findByIdAndUserId(Long bookingId, Long userId) {
+        Booking booking = findById(bookingId);
 
         if (booking.getBookerId().equals(userId)) {
             // Returns booking only for the booker ...
             return booking;
         }
 
-        Optional<Item> item = itemRepository.findById(booking.getItemId());
-        if (item.isPresent() && item.get().getOwner().getId().equals(userId)) {
+        Item item = itemService.findById(booking.getItemId());
+        if (item.getOwner().getId().equals(userId)) {
             // ... or for the owner
             return booking;
         }
@@ -104,14 +103,21 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public Booking findById(Long bookingId) {
+        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
+        if (optionalBooking.isEmpty()) {
+            throw new BookingNotFoundException(String.format("Booking with id %d not found", bookingId));
+        }
+
+        return optionalBooking.get();
+    }
+
+    @Override
     public Collection<Booking> findByUserIdAndState(Long userId, String state) {
         checkUserExists(userId);
 
         // Catch illegal states
         RequestBookingState requestBookingState = getRequestBookingStateOrThrowException(state);
-        if (requestBookingState == null) {
-            return null;
-        }
 
         Collection<Booking> result = Collections.emptyList();
         switch (requestBookingState) {
@@ -147,37 +153,34 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<Booking> findByOwnerIdAndState(Long ownerId, String state) {
-        checkUserExists(ownerId);
+        User owner = userService.findById(ownerId);
 
         // Catch illegal states
         RequestBookingState requestBookingState = getRequestBookingStateOrThrowException(state);
-        if (requestBookingState == null) {
-            return null;
-        }
 
         Collection<Booking> result = Collections.emptyList();
         switch (requestBookingState) {
             case ALL:
-                result = bookingRepository.findByOwnerId(ownerId);
+                result = bookingRepository.findByOwnerId(owner);
                 break;
 
             case FUTURE:
-                result = bookingRepository.findByOwnerIdInFuture(ownerId);
+                result = bookingRepository.findByOwnerIdInFuture(owner);
                 break;
 
             case PAST:
-                result = bookingRepository.findByOwnerIdInPast(ownerId);
+                result = bookingRepository.findByOwnerIdInPast(owner);
                 break;
 
             case CURRENT:
-                result = bookingRepository.findByOwnerIdInCurrent(ownerId);
+                result = bookingRepository.findByOwnerIdInCurrent(owner);
                 break;
 
             case WAITING:
             case REJECTED:
                 BookingStatus bookingStatus = BookingStatus.valueOf(state);
 
-                result = bookingRepository.findByOwnerIdAndStatus(ownerId, bookingStatus);
+                result = bookingRepository.findByOwnerIdAndStatus(owner, bookingStatus);
                 break;
         }
 
@@ -202,16 +205,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkUserExists(Long userId) {
-        if (userRepository.findById(userId).isEmpty()) {
-            throw new UserNotFoundException(String.format("User with id %d not found", userId));
-        }
+        userService.findById(userId);
     }
 
     private RequestBookingState getRequestBookingStateOrThrowException(String state) {
         try {
             return RequestBookingState.valueOf(state);
         } catch (IllegalArgumentException e) {
-            return null;
+            throw new BookingWrongStateRequestedException(String.format("Unknown state: %s", state));
         }
     }
 }

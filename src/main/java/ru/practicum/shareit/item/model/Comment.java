@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.model;
 import lombok.*;
 import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,7 +22,6 @@ public class Comment {
     @OneToOne(targetEntity = Item.class, fetch = FetchType.EAGER)
     private Item item;
 
-    @NotEmpty
     @Column(nullable = false, length = 1024)
     private String text;
 

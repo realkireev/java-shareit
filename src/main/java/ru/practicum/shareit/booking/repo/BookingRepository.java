@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
@@ -25,25 +26,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Collection<Booking> findByBookerIdAndItemIdAndEndIsBeforeAndStatus(Long bookerId, Long itemId, LocalDateTime now,
                                                                        BookingStatus bookingStatus);
 
-    @Query("SELECT b FROM Booking b, Item i, User u WHERE b.itemId = i.id AND i.owner = u.id AND u.id = :ownerId " +
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner " +
             "ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerId(@Param("ownerId") Long ownerId);
+    Collection<Booking> findByOwnerId(@Param("owner") User owner);
 
-    @Query("SELECT b FROM Booking b, Item i, User u WHERE b.itemId = i.id AND i.owner = u.id AND u.id = :ownerId AND " +
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
             "b.status = :status ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdAndStatus(@Param("ownerId") Long ownerId, @Param("status") BookingStatus status);
+    Collection<Booking> findByOwnerIdAndStatus(@Param("owner") User owner, @Param("status") BookingStatus status);
 
-    @Query("SELECT b FROM Booking b, Item i, User u WHERE b.itemId = i.id AND i.owner = u.id AND u.id = :ownerId AND " +
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
             "b.start > CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInFuture(@Param("ownerId") Long ownerId);
+    Collection<Booking> findByOwnerIdInFuture(@Param("owner") User owner);
 
-    @Query("SELECT b FROM Booking b, Item i, User u WHERE b.itemId = i.id AND i.owner = u.id AND u.id = :ownerId AND " +
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
             "b.end < CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInPast(@Param("ownerId") Long ownerId);
+    Collection<Booking> findByOwnerIdInPast(@Param("owner") User owner);
 
-    @Query("SELECT b FROM Booking b, Item i, User u WHERE b.itemId = i.id AND i.owner = u.id AND u.id = :ownerId AND " +
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
             "b.start <= CURRENT_TIMESTAMP AND b.end >= CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInCurrent(@Param("ownerId") Long ownerId);
+    Collection<Booking> findByOwnerIdInCurrent(@Param("owner") User owner);
 
     @Query(value = "SELECT * FROM Booking WHERE item_id = :itemId AND start_date < CURRENT_TIMESTAMP AND " +
             "status = 'APPROVED' ORDER BY start_date DESC LIMIT 1", nativeQuery = true)

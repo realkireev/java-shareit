@@ -8,7 +8,9 @@ public interface BookingService {
 
     Booking approve(Long bookingId, Long ownerId, Boolean approved);
 
-    Booking findById(Long bookingId, Long userId);
+    Booking findByIdAndUserId(Long bookingId, Long userId);
+
+    Booking findById(Long bookingId);
 
     Collection<Booking> findByUserIdAndState(Long userId, String state);
 
