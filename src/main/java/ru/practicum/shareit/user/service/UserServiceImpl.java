@@ -1,45 +1,44 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.repo.UserRepository;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
     public User create(User user) {
-        String email = user.getEmail();
+        User createdUser;
 
-        if (userStorage.findByEmail(email).isPresent()) {
-            throw new EmailAlreadyExistsException(String.format("Email %s already exists!", email));
+        try {
+            createdUser = userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new EmailAlreadyExistsException(String.format("Email %s already exists!", user.getEmail()));
         }
-        return userStorage.create(user);
+
+        return createdUser;
     }
 
     @Override
     public User update(User user, Long userId) {
-        checkUserExists(userId);
+        User storedUser = getUserByIdOrThrowException(userId);
         String email = user.getEmail();
 
-        if (userStorage.findByEmail(email).filter(x -> !Objects.equals(x.getId(), userId)).isPresent()) {
+        if (userRepository.findByEmailContainingIgnoreCase(email)
+                .stream()
+                .anyMatch(x -> !Objects.equals(x.getId(), userId))) {
             throw new EmailAlreadyExistsException(String.format("Email %s already exists!", email));
         }
-
-        Optional<User> optionalUser = userStorage.findById(userId);
-        if (optionalUser.isEmpty()) {
-            throw new UserNotFoundException(String.format("User with id %d not found", userId));
-        }
-        User storedUser = optionalUser.get();
 
         String newName = user.getName();
         String newEmail = user.getEmail();
@@ -52,32 +51,30 @@ public class UserServiceImpl implements UserService {
             storedUser.setEmail(newEmail);
         }
 
-        return userStorage.update(storedUser, userId);
+        return userRepository.save(storedUser);
     }
 
     @Override
     public void delete(Long userId) {
-        checkUserExists(userId);
-        userStorage.delete(userId);
+        User user = getUserByIdOrThrowException(userId);
+        userRepository.delete(user);
     }
 
     @Override
     public Collection<User> findAll() {
-        return userStorage.findAll();
+        return userRepository.findAll();
     }
 
     @Override
     public User findById(Long userId) {
-        Optional<User> optionalUser = userStorage.findById(userId);
-        if (optionalUser.isEmpty()) {
-            throw new UserNotFoundException(String.format("User with id %d not found", userId));
-        }
-
-        return optionalUser.get();
+        return getUserByIdOrThrowException(userId);
     }
 
-    private void checkUserExists(Long userId) {
-        if (userStorage.findById(userId).isEmpty()) {
+    private User getUserByIdOrThrowException(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            return user.get();
+        } else {
             throw new UserNotFoundException(String.format("User with id %d not found", userId));
         }
     }
