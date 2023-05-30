@@ -12,6 +12,7 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
+                .requestId(item.getRequestId())
                 .build();
 
         if (item.getComments() != null) {
@@ -32,6 +33,7 @@ public class ItemMapper {
                 .name(itemRequestDto.getName())
                 .description(itemRequestDto.getDescription())
                 .available(itemRequestDto.getAvailable())
+                .requestId(itemRequestDto.getRequestId())
                 .build();
     }
 

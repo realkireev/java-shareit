@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.service.BookingService;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,16 +44,24 @@ public class BookingController {
     @GetMapping
     public Collection<BookingResponseDto> findAllByUserIdAndState(
             @RequestHeader(USER_HEADER) @NotNull Long userId,
-            @RequestParam(defaultValue = "ALL") String state) {
-        Collection<Booking> result = bookingService.findByUserIdAndState(userId, state);
-        return result.stream().map(bookingMapper::toBookingResponseDto).collect(Collectors.toList());
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "1000") int size) {
+
+        return bookingService.findByUserIdAndState(userId, state, from, size).stream()
+                .map(bookingMapper::toBookingResponseDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/owner")
     public Collection<BookingResponseDto> findAllByOwnerIdAndState(
             @RequestHeader(USER_HEADER) @NotNull Long ownerId,
-            @RequestParam(defaultValue = "ALL") String state) {
-        Collection<Booking> result = bookingService.findByOwnerIdAndState(ownerId, state);
-        return result.stream().map(bookingMapper::toBookingResponseDto).collect(Collectors.toList());
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(required = false, defaultValue = "0") int from,
+            @RequestParam(required = false, defaultValue = "1000") int size) {
+
+        return bookingService.findByOwnerIdAndState(ownerId, state, from, size).stream()
+                .map(bookingMapper::toBookingResponseDto)
+                .collect(Collectors.toList());
     }
 }

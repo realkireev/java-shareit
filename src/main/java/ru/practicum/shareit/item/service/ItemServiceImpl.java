@@ -30,7 +30,14 @@ public class ItemServiceImpl implements ItemService {
     public Item create(Item item, Long ownerId) {
         User owner = userService.findById(ownerId);
         item.setOwner(owner);
-        return itemRepository.save(item);
+
+        Item createdItem = itemRepository.save(item);
+
+        if (item.getRequestId() != null) {
+            itemRepository.saveItemBoundWithRequest(createdItem.getId(), item.getRequestId());
+        }
+
+        return createdItem;
     }
 
     @Override

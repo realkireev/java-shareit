@@ -12,9 +12,9 @@ public interface BookingService {
 
     Booking findById(Long bookingId);
 
-    Collection<Booking> findByUserIdAndState(Long userId, String state);
+    Collection<Booking> findByUserIdAndState(Long userId, String state, int from, int size);
 
-    Collection<Booking> findByOwnerIdAndState(Long ownerId, String state);
+    Collection<Booking> findByOwnerIdAndState(Long ownerId, String state, int from, int size);
 
     Booking findLastBookingByItemId(Long itemId);
 

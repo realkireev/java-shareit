@@ -28,4 +28,7 @@ public class Item {
 
     @Transient
     private Collection<Comment> comments = new ArrayList<>();
+
+    @Transient
+    private Long requestId;
 }

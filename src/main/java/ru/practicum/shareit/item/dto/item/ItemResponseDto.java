@@ -13,4 +13,5 @@ public class ItemResponseDto {
     private String description;
     private Boolean available;
     private Collection<CommentResponseDto> comments;
+    private Long requestId;
 }

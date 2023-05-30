@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.exception.BookingNotFoundException;
@@ -14,6 +16,7 @@ import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.pagination.PaginationValidator;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDateTime;
@@ -28,9 +31,10 @@ public class BookingServiceImpl implements BookingService {
     private final ItemService itemService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository,
-                              UserService userService,
-                              @Lazy ItemService itemService) {
+    public BookingServiceImpl(
+            BookingRepository bookingRepository,
+            UserService userService,
+            @Lazy ItemService itemService) {
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.itemService = itemService;
@@ -113,38 +117,42 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> findByUserIdAndState(Long userId, String state) {
+    public Collection<Booking> findByUserIdAndState(Long userId, String state, int from, int size) {
         checkUserExists(userId);
 
         // Catch illegal states
         RequestBookingState requestBookingState = getRequestBookingStateOrThrowException(state);
 
         Collection<Booking> result = Collections.emptyList();
+
+        PaginationValidator.validate(from, size);
+        int page = from / size;
+
+        Pageable pageable = PageRequest.of(page, size, SORT_BY_START_DESC);
+
         switch (requestBookingState) {
             case ALL:
-                result = bookingRepository.findByBookerId(userId, SORT_BY_START_DESC);
+                result = bookingRepository.findByBookerId(userId, pageable).getContent();
                 break;
 
             case FUTURE:
-                result = bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(),
-                        SORT_BY_START_DESC);
+                result = bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), pageable).getContent();
                 break;
 
             case PAST:
-                result = bookingRepository.findByBookerIdAndEndIsBefore(userId, LocalDateTime.now(),
-                        SORT_BY_START_DESC);
+                result = bookingRepository.findByBookerIdAndEndIsBefore(userId, LocalDateTime.now(), pageable).getContent();
                 break;
 
             case CURRENT:
                 result = bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(),
-                        LocalDateTime.now(), SORT_BY_START_DESC);
+                        LocalDateTime.now(), pageable).getContent();
                 break;
 
             case WAITING:
             case REJECTED:
                 BookingStatus bookingStatus = BookingStatus.valueOf(state);
                 result = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, bookingStatus,
-                        SORT_BY_START_DESC);
+                        pageable).getContent();
                 break;
         }
 
@@ -152,35 +160,41 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<Booking> findByOwnerIdAndState(Long ownerId, String state) {
-        User owner = userService.findById(ownerId);
+    public Collection<Booking> findByOwnerIdAndState(Long ownerId, String state, int from, int size) {
+        User owner = checkUserExists(ownerId);
 
         // Catch illegal states
         RequestBookingState requestBookingState = getRequestBookingStateOrThrowException(state);
 
         Collection<Booking> result = Collections.emptyList();
+
+        PaginationValidator.validate(from, size);
+        int page = from / size;
+
+        Pageable pageable = PageRequest.of(page, size, SORT_BY_START_DESC);
+
         switch (requestBookingState) {
             case ALL:
-                result = bookingRepository.findByOwnerId(owner);
+                result = bookingRepository.findByOwnerId(owner, pageable).getContent();
                 break;
 
             case FUTURE:
-                result = bookingRepository.findByOwnerIdInFuture(owner);
+                result = bookingRepository.findByOwnerIdInFuture(owner, pageable).getContent();
                 break;
 
             case PAST:
-                result = bookingRepository.findByOwnerIdInPast(owner);
+                result = bookingRepository.findByOwnerIdInPast(owner, pageable).getContent();
                 break;
 
             case CURRENT:
-                result = bookingRepository.findByOwnerIdInCurrent(owner);
+                result = bookingRepository.findByOwnerIdInCurrent(owner, pageable).getContent();
                 break;
 
             case WAITING:
             case REJECTED:
                 BookingStatus bookingStatus = BookingStatus.valueOf(state);
 
-                result = bookingRepository.findByOwnerIdAndStatus(owner, bookingStatus);
+                result = bookingRepository.findByOwnerIdAndStatus(owner, bookingStatus, pageable).getContent();
                 break;
         }
 
@@ -204,8 +218,8 @@ public class BookingServiceImpl implements BookingService {
                 BookingStatus.APPROVED).size() > 0;
     }
 
-    private void checkUserExists(Long userId) {
-        userService.findById(userId);
+    private User checkUserExists(Long userId) {
+        return userService.findById(userId);
     }
 
     private RequestBookingState getRequestBookingStateOrThrowException(String state) {

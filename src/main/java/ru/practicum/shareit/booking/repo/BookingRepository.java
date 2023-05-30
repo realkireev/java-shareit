@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.repo;
 
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,39 +13,37 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    Collection<Booking> findByBookerId(Long bookerId, Sort sort);
+    Page<Booking> findByBookerId(Long bookerId, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndStatusOrderByStartDesc(Long bookerId, BookingStatus status, Sort sort);
+    Page<Booking> findByBookerIdAndStatusOrderByStartDesc(Long bookerId, BookingStatus status, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndEndIsBefore(Long bookerId, LocalDateTime end, Sort sort);
+    Page<Booking> findByBookerIdAndEndIsBefore(Long bookerId, LocalDateTime end, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime start, Sort sort);
+    Page<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime start, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndStartIsBeforeAndEndIsAfter(Long bookerId, LocalDateTime start,
-                                                                    LocalDateTime end, Sort sort);
+    Page<Booking> findByBookerIdAndStartIsBeforeAndEndIsAfter(Long bookerId, LocalDateTime start,
+                                                                    LocalDateTime end, Pageable pageable);
 
     Collection<Booking> findByBookerIdAndItemIdAndEndIsBeforeAndStatus(Long bookerId, Long itemId, LocalDateTime now,
                                                                        BookingStatus bookingStatus);
 
-    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner " +
-            "ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerId(@Param("owner") User owner);
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner")
+    Page<Booking> findByOwnerId(@Param("owner") User owner, Pageable pageable);
+
+    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND b.status = :status")
+    Page<Booking> findByOwnerIdAndStatus(@Param("owner") User owner, @Param("status") BookingStatus status, Pageable pageable);
 
     @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
-            "b.status = :status ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdAndStatus(@Param("owner") User owner, @Param("status") BookingStatus status);
+            "b.start > CURRENT_TIMESTAMP")
+    Page<Booking> findByOwnerIdInFuture(@Param("owner") User owner, Pageable pageable);
 
     @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
-            "b.start > CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInFuture(@Param("owner") User owner);
+            "b.end < CURRENT_TIMESTAMP")
+    Page<Booking> findByOwnerIdInPast(@Param("owner") User owner, Pageable pageable);
 
     @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
-            "b.end < CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInPast(@Param("owner") User owner);
-
-    @Query("SELECT b FROM Booking b, Item i WHERE b.itemId = i.id AND i.owner = :owner AND " +
-            "b.start <= CURRENT_TIMESTAMP AND b.end >= CURRENT_TIMESTAMP ORDER BY b.start DESC")
-    Collection<Booking> findByOwnerIdInCurrent(@Param("owner") User owner);
+            "b.start <= CURRENT_TIMESTAMP AND b.end >= CURRENT_TIMESTAMP")
+    Page<Booking> findByOwnerIdInCurrent(@Param("owner") User owner, Pageable pageable);
 
     @Query(value = "SELECT * FROM Booking WHERE item_id = :itemId AND start_date < CURRENT_TIMESTAMP AND " +
             "status = 'APPROVED' ORDER BY start_date DESC LIMIT 1", nativeQuery = true)
