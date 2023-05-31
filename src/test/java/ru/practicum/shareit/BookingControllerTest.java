@@ -125,7 +125,7 @@ public class BookingControllerTest {
             .itemId(item2.getId())
             .bookerId(users.get(0).getId())
             .start(LocalDateTime.now().plusSeconds(3))
-            .end(LocalDateTime.now().plusSeconds(4))
+            .end(LocalDateTime.now().plusSeconds(5))
             .status(BookingStatus.WAITING)
             .build();
 
@@ -1115,7 +1115,7 @@ public class BookingControllerTest {
     @Test
     @Order(56)
     public void shouldCreateCommentByUser1ForItem2() throws Exception {
-        Thread.sleep(3000);
+        Thread.sleep(3500);
 
         long userId = 1;
         long itemId = 2;
@@ -1303,6 +1303,116 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$.description").value(item3.getDescription()))
                 .andExpect(jsonPath("$.available").value(true))
                 .andExpect(jsonPath("$.comments", hasSize(0)));
+    }
+
+    @Test
+    @Order(66)
+    public void shouldReturnBadRequestOnGetAllWithFrom0Size0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "0")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(67)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFrom0Size0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "0")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(68)
+    public void shouldReturnBadRequestOnGetAllWithFromNegativeSize0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(69)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFromNegativeSize0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(70)
+    public void shouldReturnBadRequestOnGetAllWithFrom0SizeNegative() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "0")
+                        .param("size", "-1"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(71)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFrom0SizeNegative() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "0")
+                        .param("size", "-1"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(72)
+    public void shouldReturnBooking8OnGetAllWithFrom4Size2() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "4")
+                        .param("size", "2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    @Order(73)
+    public void shouldReturnBooking3OnGetAllForOwnerWithFrom1Size1() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(HEADER_USER_ID, userId)
+                        .param("from", "1")
+                        .param("size", "1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(booking3.getId()))
+                .andExpect(jsonPath("$[0].item.id").value(item1.getId()))
+                .andExpect(jsonPath("$[0].item.name").value(item1.getName()))
+                .andExpect(jsonPath("$[0].item.description").value(item1.getDescription()));
     }
 
     private void sendRequestsToCreateEntities() throws Exception {
