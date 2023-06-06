@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.item.ItemMapper;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.dto.UserResponseDto;
-import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.item.dto.item.ItemResponseDto;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.dto.UserResponseDto;
 import ru.practicum.shareit.user.service.UserService;
 
 @Component
@@ -20,8 +20,9 @@ public class BookingMapper {
         if (booking == null) {
             return null;
         }
-        ItemResponseDto item = ItemMapper.toItemDto(itemService.findById(booking.getItemId()));
-        UserResponseDto booker = UserMapper.toUserResponseDto(userService.findById(booking.getBookerId()));
+
+        ItemResponseDto item = ItemMapper.toItemResponseDto(itemService.findById(booking.getItemId()));
+        UserResponseDto booker = UserMapper.toUserResponseDto(userService.findUserById(booking.getBookerId()));
 
         return BookingResponseDto.builder()
                 .id(booking.getId())

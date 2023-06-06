@@ -1,10 +1,19 @@
 package ru.practicum.shareit.request.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
-import javax.persistence.*;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,5 +33,5 @@ public class Request {
     private LocalDateTime created;
 
     @OneToMany(targetEntity = Item.class)
-    private Collection<Item> items;
+    private List<Item> items;
 }

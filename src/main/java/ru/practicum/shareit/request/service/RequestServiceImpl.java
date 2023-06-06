@@ -4,14 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.pagination.PaginationValidator;
+import ru.practicum.shareit.request.dto.RequestMapper;
+import ru.practicum.shareit.request.dto.RequestRequestDto;
+import ru.practicum.shareit.request.dto.RequestResponseDto;
 import ru.practicum.shareit.request.exception.RequestNotFoundException;
 import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.request.repo.RequestRepository;
 import ru.practicum.shareit.user.service.UserService;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,16 +25,17 @@ public class RequestServiceImpl implements RequestService {
     private final UserService userService;
 
     @Override
-    public Request create(Request request, Long userId) {
+    public RequestResponseDto create(RequestRequestDto requestRequestDto, Long userId) {
         userService.findById(userId);
+        Request request = RequestMapper.toRequest(requestRequestDto);
 
         request.setUserId(userId);
         request.setCreated(LocalDateTime.now());
-        return requestRepository.save(request);
+        return RequestMapper.toRequestResponseDto(requestRepository.save(request));
     }
 
     @Override
-    public Request findById(Long requestId, Long userId) {
+    public RequestResponseDto findById(Long requestId, Long userId) {
         userService.findById(userId);
 
         Optional<Request> optionalRequest = requestRepository.findById(requestId);
@@ -39,29 +45,27 @@ public class RequestServiceImpl implements RequestService {
 
         Request request = optionalRequest.get();
         addItems(request);
-        return request;
+        return RequestMapper.toRequestResponseDto(request);
     }
 
     @Override
-    public Collection<Request> findByUserId(Long userId) {
+    public List<RequestResponseDto> findByUserId(Long userId) {
         userService.findById(userId);
 
-        Collection<Request> requests = requestRepository.findByUserId(userId);
+        List<Request> requests = requestRepository.findByUserId(userId);
         addItems(requests);
-        return requests;
+        return requests.stream().map(RequestMapper::toRequestResponseDto).collect(Collectors.toList());
     }
 
     @Override
-    public Collection<Request> findAllWithPagination(Long userId, int from, int size) {
+    public List<RequestResponseDto> findAllWithPagination(Long userId, int from, int size) {
         userService.findById(userId);
-        PaginationValidator.validate(from, size);
         int page = from / size;
 
-        Collection<Request> requests = requestRepository.findAllByUserIdNot(userId, PageRequest.of(page, size))
-                .getContent();
+        List<Request> requests = requestRepository.findAllByUserIdNot(userId, PageRequest.of(page, size)).getContent();
 
         addItems(requests);
-        return requests;
+        return requests.stream().map(RequestMapper::toRequestResponseDto).collect(Collectors.toList());
     }
 
     private void addItems(Collection<Request> requests) {
@@ -69,7 +73,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     private void addItems(Request request) {
-        Collection<Item> items = requestRepository.findItemsByItemRequestId(request.getId());
+        List<Item> items = requestRepository.findItemsByRequestId(request.getId());
         items.forEach(i -> i.setRequestId(request.getId()));
         request.setItems(items);
     }
