@@ -1,5 +1,6 @@
 package ru.practicum.shareit.integration.user;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,9 +29,23 @@ public class UserServiceIntegrationTest {
     private UserRequestDto userRequestDto2;
     private UserRequestDto userRequestDto3;
 
+    @BeforeEach
+    public void preparation() {
+        userRequestDto1 = new UserRequestDto();
+        userRequestDto1.setName("Eddie Murphy");
+        userRequestDto1.setEmail("ed@admin.su");
+
+        userRequestDto2 = new UserRequestDto();
+        userRequestDto2.setName("Arnie");
+        userRequestDto2.setEmail("arnie@schwarz.de");
+
+        userRequestDto3 = new UserRequestDto();
+        userRequestDto3.setName("Tim Roth");
+        userRequestDto3.setEmail("arnie@schwarz.de");
+    }
+
     @Test
     public void shouldCreateUser() {
-        createTestObjects();
         UserResponseDto createdUser = userService.create(userRequestDto1);
 
         assertNotNull(createdUser);
@@ -40,7 +55,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldThrowExceptionWithSameEmail() {
-        createTestObjects();
         userService.create(userRequestDto2);
 
         assertThrows(EmailAlreadyExistsException.class, () -> userService.create(userRequestDto3));
@@ -48,7 +62,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldUpdateUser() {
-        createTestObjects();
         UserResponseDto createdUser = userService.create(userRequestDto1);
         assertNotNull(createdUser);
 
@@ -64,7 +77,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldThrowExceptionWhenUpdateUserWithExistingEmail() {
-        createTestObjects();
         UserResponseDto createdUser1 = userService.create(userRequestDto1);
         UserResponseDto createdUser2 = userService.create(userRequestDto2);
 
@@ -80,7 +92,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldDeleteUser() {
-        createTestObjects();
         UserResponseDto createdUser = userService.create(userRequestDto1);
 
         assertNotNull(createdUser);
@@ -93,8 +104,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldFindAllUsers() {
-        createTestObjects();
-
         userService.create(userRequestDto1);
         userService.create(userRequestDto2);
 
@@ -106,7 +115,6 @@ public class UserServiceIntegrationTest {
 
     @Test
     public void shouldFindUserById() {
-        createTestObjects();
         UserResponseDto createdUser = userService.create(userRequestDto1);
 
         assertNotNull(createdUser);
@@ -118,19 +126,5 @@ public class UserServiceIntegrationTest {
         assertEquals(userId, foundUser.getId());
         assertEquals(userRequestDto1.getName(), foundUser.getName());
         assertEquals(userRequestDto1.getEmail(), foundUser.getEmail());
-    }
-
-    private void createTestObjects() {
-        userRequestDto1 = new UserRequestDto();
-        userRequestDto1.setName("Eddie Murphy");
-        userRequestDto1.setEmail("ed@admin.su");
-
-        userRequestDto2 = new UserRequestDto();
-        userRequestDto2.setName("Arnie");
-        userRequestDto2.setEmail("arnie@schwarz.de");
-
-        userRequestDto3 = new UserRequestDto();
-        userRequestDto3.setName("Tim Roth");
-        userRequestDto3.setEmail("arnie@schwarz.de");
     }
 }

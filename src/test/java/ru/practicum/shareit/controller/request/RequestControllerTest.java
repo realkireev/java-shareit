@@ -29,6 +29,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.Variables.CONTENT_TYPE;
+import static ru.practicum.shareit.Variables.USER_HEADER;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,8 +41,6 @@ public class RequestControllerTest {
     @Autowired
     private MockMvc mockMvc;
     private static final String ENDPOINT = "/requests";
-    private static final String CONTENT_TYPE = "application/json";
-    private static final String HEADER_USER_ID = "X-Sharer-User-Id";
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     private final List<User> users = createUserObjects();
@@ -99,7 +99,7 @@ public class RequestControllerTest {
         String body = "{\"description\": \"Срочно ищу малиновый пиджак\"}";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -113,7 +113,7 @@ public class RequestControllerTest {
         String body = "{\"description\": \"\"}";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -127,7 +127,7 @@ public class RequestControllerTest {
         String body = "{\"description\": null}";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -141,7 +141,7 @@ public class RequestControllerTest {
         String body = "{}";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -155,7 +155,7 @@ public class RequestControllerTest {
         String body = "";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -168,7 +168,7 @@ public class RequestControllerTest {
         long userId = 99;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -179,7 +179,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -191,7 +191,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -203,7 +203,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "0"))
                 .andDo(print())
@@ -216,7 +216,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "-1")
                         .param("size", "20"))
                 .andDo(print())
@@ -229,7 +229,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "-1"))
                 .andDo(print())
@@ -242,7 +242,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "20"))
                 .andDo(print())
@@ -257,7 +257,7 @@ public class RequestControllerTest {
         String body = "{\"description\": \"Срочно ищу малиновый пиджак\"}";
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -275,7 +275,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -293,7 +293,7 @@ public class RequestControllerTest {
 
         long userId = 1;
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -314,7 +314,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "20"))
                 .andDo(print())
@@ -328,7 +328,7 @@ public class RequestControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/all")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "20"))
                 .andDo(print())
@@ -351,7 +351,7 @@ public class RequestControllerTest {
         long userId = 99;
 
         mockMvc.perform(get(ENDPOINT + "/1")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -362,7 +362,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/99")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -373,7 +373,7 @@ public class RequestControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/1")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "20"))
                 .andDo(print())
@@ -395,7 +395,7 @@ public class RequestControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/1")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("from", "0")
                         .param("size", "20"))
                 .andDo(print())
@@ -441,7 +441,7 @@ public class RequestControllerTest {
         String body = objectMapper.writeValueAsString(item);
 
         mockMvc.perform(post("/items")
-                .header(HEADER_USER_ID, item.getOwner().getId())
+                .header(USER_HEADER, item.getOwner().getId())
                 .contentType(CONTENT_TYPE)
                 .content(body));
     }

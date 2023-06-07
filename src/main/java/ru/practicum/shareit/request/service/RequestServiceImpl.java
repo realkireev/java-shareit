@@ -62,7 +62,7 @@ public class RequestServiceImpl implements RequestService {
         userService.findById(userId);
         int page = from / size;
 
-        List<Request> requests = requestRepository.findAllByUserIdNot(userId, PageRequest.of(page, size)).getContent();
+        List<Request> requests = requestRepository.findAllByUserIdNot(userId, PageRequest.of(page, size));
 
         addItems(requests);
         return requests.stream().map(RequestMapper::toRequestResponseDto).collect(Collectors.toList());

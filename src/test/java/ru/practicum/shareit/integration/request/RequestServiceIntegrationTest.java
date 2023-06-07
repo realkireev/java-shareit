@@ -1,5 +1,6 @@
 package ru.practicum.shareit.integration.request;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,16 +29,33 @@ public class RequestServiceIntegrationTest {
     @Autowired
     private RequestService requestService;
 
-    private UserRequestDto userRequestDto1;
-    private UserRequestDto userRequestDto2;
     private RequestRequestDto requestRequestDto1;
     private RequestRequestDto requestRequestDto2;
+    private UserResponseDto user1;
+    private UserResponseDto user2;
+
+    @BeforeEach
+    public void preparation() {
+        UserRequestDto userRequestDto1 = new UserRequestDto();
+        userRequestDto1.setName("Michael Tors");
+        userRequestDto1.setEmail("tors@fashion.com");
+
+        UserRequestDto userRequestDto2 = new UserRequestDto();
+        userRequestDto2.setName("Bill Clinton");
+        userRequestDto2.setEmail("potus@usa.gov");
+
+        requestRequestDto1 = new RequestRequestDto();
+        requestRequestDto1.setDescription("A big fridge needed!");
+
+        requestRequestDto2 = new RequestRequestDto();
+        requestRequestDto2.setDescription("I need a microscope");
+
+        user1 = userService.create(userRequestDto1);
+        user2 = userService.create(userRequestDto2);
+    }
 
     @Test
     public void shouldCreateRequest() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-
         RequestResponseDto request = requestService.create(requestRequestDto1, user1.getId());
 
         assertNotNull(request);
@@ -46,18 +64,12 @@ public class RequestServiceIntegrationTest {
 
     @Test
     public void shouldThrowExceptionWhenDescriptionIsNull() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-
         RequestRequestDto requestRequestDto = new RequestRequestDto();
         assertThrows(DataIntegrityViolationException.class, () -> requestService.create(requestRequestDto, user1.getId()));
     }
 
     @Test
     public void shouldFindRequestById() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-
         RequestResponseDto request = requestService.create(requestRequestDto1, user1.getId());
         RequestResponseDto requestFound = requestService.findById(request.getId(), user1.getId());
 
@@ -67,17 +79,11 @@ public class RequestServiceIntegrationTest {
 
     @Test
     public void shouldThrowExceptionWhenFindRequestByUnknownId() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-
         assertThrows(RequestNotFoundException.class, () -> requestService.findById(99L, user1.getId()));
     }
 
     @Test
     public void shouldFindRequestByUserId() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-
         RequestResponseDto request = requestService.create(requestRequestDto1, user1.getId());
         List<RequestResponseDto> requestFound = requestService.findByUserId(user1.getId());
 
@@ -88,10 +94,6 @@ public class RequestServiceIntegrationTest {
 
     @Test
     public void shouldFindAllWithPagination() {
-        createTestObjects();
-        UserResponseDto user1 = userService.create(userRequestDto1);
-        UserResponseDto user2 = userService.create(userRequestDto2);
-
         requestService.create(requestRequestDto1, user1.getId());
         requestService.create(requestRequestDto2, user1.getId());
         List<RequestResponseDto> requestFound;
@@ -107,21 +109,5 @@ public class RequestServiceIntegrationTest {
         requestFound = requestService.findAllWithPagination(user2.getId(), 0, 1);
         assertNotNull(requestFound);
         assertEquals(1, requestFound.size());
-    }
-
-    private void createTestObjects() {
-        userRequestDto1 = new UserRequestDto();
-        userRequestDto1.setName("Michael Tors");
-        userRequestDto1.setEmail("tors@fashion.com");
-
-        userRequestDto2 = new UserRequestDto();
-        userRequestDto2.setName("Bill Clinton");
-        userRequestDto2.setEmail("potus@usa.gov");
-
-        requestRequestDto1 = new RequestRequestDto();
-        requestRequestDto1.setDescription("A big fridge needed!");
-
-        requestRequestDto2 = new RequestRequestDto();
-        requestRequestDto2.setDescription("I need a microscope");
     }
 }

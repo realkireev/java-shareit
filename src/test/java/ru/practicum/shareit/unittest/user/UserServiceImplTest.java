@@ -1,5 +1,6 @@
 package ru.practicum.shareit.unittest.user;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -12,10 +13,11 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repo.UserRepository;
 import ru.practicum.shareit.user.service.UserServiceImpl;
-import java.util.Arrays;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,18 +36,31 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Test
-    public void shouldCreateUser() {
-        UserRequestDto userRequestDto = new UserRequestDto();
+    private UserRequestDto userRequestDto;
+    private User createdUser;
+    private User storedUser;
+
+    @BeforeEach
+    public void preparation() {
+        userRequestDto = new UserRequestDto();
         userRequestDto.setName("Michael Jackson");
         userRequestDto.setEmail("mjackson@gmail.com");
 
-        User createdUser = User.builder()
+        createdUser = User.builder()
                 .id(1L)
-                .name("Michael Jackson")
-                .email("mjackson@gmail.com")
+                .name(userRequestDto.getName())
+                .email(userRequestDto.getEmail())
                 .build();
 
+        storedUser = User.builder()
+                .id(2L)
+                .name("Tim Cook")
+                .email("cook@mail.com")
+                .build();
+    }
+
+    @Test
+    public void shouldCreateUser() {
         when(mockUserRepository.save(any(User.class))).thenReturn(createdUser);
 
         UserResponseDto result = userService.create(userRequestDto);
@@ -60,10 +75,6 @@ public class UserServiceImplTest {
 
     @Test
     public void shouldThrowExceptionWhenEmailAlreadyExists() {
-        UserRequestDto userRequestDto = new UserRequestDto();
-        userRequestDto.setName("Ivan Demimonde");
-        userRequestDto.setEmail("idem@yahoo.com");
-
         when(mockUserRepository.save(any(User.class))).thenThrow(EmailAlreadyExistsException.class);
 
         assertThrows(EmailAlreadyExistsException.class, () -> userService.create(userRequestDto));
@@ -72,29 +83,17 @@ public class UserServiceImplTest {
 
     @Test
     public void shouldUpdateUser() {
-        Long userId = 1L;
-
-        UserRequestDto userRequestDto = new UserRequestDto();
-        userRequestDto.setName("Steve Jobs");
-        userRequestDto.setEmail("jobs@apple.com");
-
-        User storedUser = User.builder()
-                .id(userId)
-                .name("Tim Cook")
-                .email("cook@mail.com")
-                .build();
-
-        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(storedUser));
+        when(mockUserRepository.findById(storedUser.getId())).thenReturn(Optional.of(storedUser));
         when(mockUserRepository.findByEmailContainingIgnoreCase(anyString())).thenReturn(null);
         when(mockUserRepository.save(any(User.class))).thenReturn(storedUser);
 
-        UserResponseDto updatedUserResponseDto = userService.update(userRequestDto, userId);
+        UserResponseDto updatedUserResponseDto = userService.update(userRequestDto, storedUser.getId());
 
         assertNotNull(updatedUserResponseDto);
         assertEquals(userRequestDto.getName(), updatedUserResponseDto.getName());
         assertEquals(userRequestDto.getEmail(), updatedUserResponseDto.getEmail());
 
-        verify(mockUserRepository, times(1)).findById(userId);
+        verify(mockUserRepository, times(1)).findById(storedUser.getId());
         verify(mockUserRepository, times(1)).findByEmailContainingIgnoreCase(anyString());
         verify(mockUserRepository, times(1)).save(any(User.class));
     }
@@ -103,18 +102,9 @@ public class UserServiceImplTest {
     public void shouldThrowExceptionWhenUpdateWithSameEmail() {
         Long userId = 1L;
 
-        UserRequestDto userRequestDto = new UserRequestDto();
-        userRequestDto.setName("John Smith");
-        userRequestDto.setEmail("johnsmith@gmail.com");
-
-        User storedUser = User.builder()
-                .id(2L)
-                .name("Jane Air")
-                .email("johnsmith@gmail.com")
-                .build();
-
         when(mockUserRepository.findById(userId)).thenReturn(Optional.of(storedUser));
-        when(mockUserRepository.findByEmailContainingIgnoreCase(anyString())).thenReturn(Collections.singletonList(storedUser));
+        when(mockUserRepository.findByEmailContainingIgnoreCase(anyString())).thenReturn(
+                Collections.singletonList(storedUser));
 
         assertThrows(EmailAlreadyExistsException.class, () -> userService.update(userRequestDto, userId));
 
@@ -125,17 +115,11 @@ public class UserServiceImplTest {
 
     @Test
     public void shouldDeleteUser() {
-        Long userId = 1L;
+        when(mockUserRepository.findById(storedUser.getId())).thenReturn(Optional.of(storedUser));
 
-        User user = User.builder()
-                .id(userId)
-                .build();
-
-        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        userService.delete(userId);
-        verify(mockUserRepository, times(1)).findById(userId);
-        verify(mockUserRepository, times(1)).delete(user);
+        userService.delete(storedUser.getId());
+        verify(mockUserRepository, times(1)).findById(storedUser.getId());
+        verify(mockUserRepository, times(1)).delete(storedUser);
     }
 
     @Test
@@ -151,17 +135,7 @@ public class UserServiceImplTest {
 
     @Test
     public void shouldReturnListOfUser() {
-        User user1 = User.builder()
-                .id(1L)
-                .name("Mary")
-                .build();
-
-        User user2 = User.builder()
-                .id(2L)
-                .name("Jane")
-                .build();
-
-        List<User> userList = Arrays.asList(user1, user2);
+        List<User> userList = List.of(storedUser, createdUser);
 
         when(mockUserRepository.findAll()).thenReturn(userList);
         List<UserResponseDto> result = userService.findAll();
@@ -182,16 +156,10 @@ public class UserServiceImplTest {
     public void shouldReturnUserDtoById() {
         Long userId = 1L;
 
-        User user = User.builder()
-                .id(userId)
-                .name("Penelope")
-                .email("Pen@soap.com")
-                .build();
-
-        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(storedUser));
 
         UserResponseDto result = userService.findById(userId);
-        UserResponseDto expected = UserMapper.toUserResponseDto(user);
+        UserResponseDto expected = UserMapper.toUserResponseDto(storedUser);
 
         assertEquals(expected.getId(), result.getId());
         assertEquals(expected.getName(), result.getName());
@@ -214,17 +182,10 @@ public class UserServiceImplTest {
     public void shouldReturnUserById() {
         Long userId = 1L;
 
-        User user = User.builder()
-                .id(userId)
-                .name("Cassandra")
-                .email("cassa@erp.com")
-                .build();
-
-        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(mockUserRepository.findById(userId)).thenReturn(Optional.of(storedUser));
         User result = userService.findUserById(userId);
 
-        assertEquals(user, result);
+        assertEquals(storedUser, result);
         verify(mockUserRepository, times(1)).findById(userId);
     }
-
 }

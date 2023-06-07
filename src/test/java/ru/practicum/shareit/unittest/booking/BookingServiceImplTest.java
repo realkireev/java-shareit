@@ -1,5 +1,6 @@
 package ru.practicum.shareit.unittest.booking;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -7,7 +8,6 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
@@ -24,10 +24,10 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +37,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.practicum.shareit.Variables.SORT_BY_START_DESC;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -56,507 +57,39 @@ class BookingServiceImplTest {
     @InjectMocks
     private BookingServiceImpl bookingService;
 
-    private static final Sort SORT_BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
-
     private User owner;
     private User booker;
-    private Item item;
     private BookingRequestDto bookingRequestDto;
     private Booking booking;
     private Booking booking2;
     private List<Booking> bookings;
     private List<BookingResponseDto> bookingsDto;
     private BookingResponseDto bookingResponseDto;
-    private BookingResponseDto bookingResponseDto2;
     private Pageable pageable;
-    private List<Booking> resultBookings;
-
-    @Test
-    public void shouldCreateBooking() {
-        createTestObjects();
-
-        when(mockItemService.findById(item.getId())).thenReturn(item);
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingMapper.toBooking(bookingRequestDto)).thenReturn(booking);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingRepository.save(Mockito.any(Booking.class))).thenReturn(booking);
-
-        BookingResponseDto result = bookingService.create(bookingRequestDto, booker.getId());
-
-        assertNotNull(result);
-        assertEquals(result, bookingResponseDto);
-
-        verify(mockItemService, times(1)).findById(booking.getItemId());
-        verify(mockUserService, times(1)).findUserById(booker.getId());
-        verify(mockBookingMapper, times(1)).toBooking(bookingRequestDto);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingRepository, times(1)).save(booking);
-    }
-
-    @Test
-    public void shouldApproveBooking() {
-        createTestObjects();
-
-        when(mockBookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
-        when(mockItemService.findById(booking.getItemId())).thenReturn(item);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingRepository.save(booking)).thenReturn(booking);
-
-        BookingResponseDto result = bookingService.approve(booking.getId(), owner.getId(), true);
-
-        assertNotNull(result);
-        assertEquals(bookingResponseDto, result);
-
-        verify(mockBookingRepository, times(1)).findById(booking.getId());
-        verify(mockItemService, times(1)).findById(booking.getItemId());
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingRepository, times(1)).save(booking);
-    }
-
-    @Test
-    public void shouldFindByIdAndUserId() {
-        Long bookingId = 1L;
-        Long userId = 1L;
-
-        createTestObjects();
-
-        when(mockBookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
-        when(mockItemService.findById(booking.getItemId())).thenReturn(item);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-
-        BookingResponseDto result = bookingService.findByIdAndUserId(bookingId, userId);
-
-        assertNotNull(result);
-        assertEquals(bookingResponseDto, result);
-
-        verify(mockBookingRepository, times(1)).findById(bookingId);
-        verify(mockItemService, times(1)).findById(booking.getItemId());
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-    }
-
-    @Test
-    public void shouldFindById() {
-        Long bookingId = 1L;
-        createTestObjects();
-
-        when(mockBookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-
-        BookingResponseDto result = bookingService.findById(bookingId);
-
-        assertNotNull(result);
-        assertEquals(bookingResponseDto, result);
-
-        verify(mockBookingRepository, times(1)).findById(bookingId);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStateALL() {
-        Long userId = 1L;
-        String state = "ALL";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-        Pageable pageable = PageRequest.of(0, size, SORT_BY_START_DESC);
-        List<Booking> resultBookings = new ArrayList<>(bookings);
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerId(userId, pageable)).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerId(userId, pageable);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStateFUTURE() {
-        Long userId = 1L;
-        String state = "FUTURE";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-        Pageable pageable = PageRequest.of(0, size, SORT_BY_START_DESC);
-        List<Booking> resultBookings = new ArrayList<>(bookings);
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerIdAndStartIsAfter(eq(userId), any(LocalDateTime.class), eq(pageable)))
-                .thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndStartIsAfter(eq(userId),
-                any(LocalDateTime.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStatePAST() {
-        Long userId = 1L;
-        String state = "PAST";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerIdAndEndIsBefore(eq(userId), any(LocalDateTime.class), eq(pageable)))
-                .thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndEndIsBefore(eq(userId),
-                any(LocalDateTime.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStateCURRENT() {
-        Long userId = 1L;
-        String state = "CURRENT";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(eq(userId), any(LocalDateTime.class),
-                any(LocalDateTime.class), eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndStartIsBeforeAndEndIsAfter(eq(userId),
-                any(LocalDateTime.class), any(LocalDateTime.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStateWAITING() {
-        Long userId = 1L;
-        String state = "WAITING";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerIdAndStatusOrderByStartDesc(eq(userId), any(BookingStatus.class),
-                eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndStatusOrderByStartDesc(eq(userId),
-                any(BookingStatus.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByUserIdAndStateREJECTED() {
-        Long userId = 1L;
-        String state = "REJECTED";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
-        when(mockBookingRepository.findByBookerIdAndStatusOrderByStartDesc(eq(userId), any(BookingStatus.class),
-                eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndStatusOrderByStartDesc(eq(userId),
-                any(BookingStatus.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStateALL() {
-        Long userId = 1L;
-        String state = "ALL";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-        Pageable pageable = PageRequest.of(0, size, SORT_BY_START_DESC);
-        List<Booking> resultBookings = new ArrayList<>(bookings);
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerId(owner, pageable)).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerId(owner, pageable);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStateFUTURE() {
-        Long userId = 1L;
-        String state = "FUTURE";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-        Pageable pageable = PageRequest.of(0, size, SORT_BY_START_DESC);
-        List<Booking> resultBookings = new ArrayList<>(bookings);
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerIdInFuture(eq(owner), eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerIdInFuture(eq(owner), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStatePAST() {
-        Long userId = 1L;
-        String state = "PAST";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerIdInPast(eq(owner), eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerIdInPast(eq(owner), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStateCURRENT() {
-        Long userId = 1L;
-        String state = "CURRENT";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerIdInCurrent(eq(owner), eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerIdInCurrent(eq(owner), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStateWAITING() {
-        Long userId = 1L;
-        String state = "WAITING";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerIdAndStatus(eq(owner), any(BookingStatus.class),
-                eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerIdAndStatus(eq(owner),
-                any(BookingStatus.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnBookingsByOwnerIdAndStateREJECTED() {
-        Long userId = 1L;
-        String state = "REJECTED";
-        int from = 0;
-        int size = 20;
-
-        createTestObjects();
-
-        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
-        when(mockBookingRepository.findByOwnerIdAndStatus(eq(owner), any(BookingStatus.class),
-                eq(pageable))).thenReturn(resultBookings);
-        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
-        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
-
-        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
-
-        assertNotNull(result);
-        assertEquals(bookingsDto.size(), result.size());
-        assertEquals(bookingsDto.get(0), result.get(0));
-        assertEquals(bookingsDto.get(1), result.get(1));
-
-        verify(mockBookingRepository, times(1)).findByOwnerIdAndStatus(eq(owner),
-                any(BookingStatus.class), eq(pageable));
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
-        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
-    }
-
-    @Test
-    public void shouldReturnLastBooking() {
-        Long itemId = 1L;
-        createTestObjects();
-
-        Optional<Booking> optionalBooking = Optional.of(booking);
-
-        when(mockBookingRepository.findLastBookingByItemId(itemId)).thenReturn(optionalBooking);
-        Booking result = bookingService.findLastBookingByItemId(itemId);
-
-        assertNotNull(result);
-        assertEquals(booking, result);
-
-        verify(mockBookingRepository, times(1)).findLastBookingByItemId(itemId);
-    }
-
-    @Test
-    public void shouldReturnNextBooking() {
-        Long itemId = 1L;
-        createTestObjects();
-
-        Optional<Booking> optionalBooking = Optional.of(booking); // Provide appropriate booking object
-
-        when(mockBookingRepository.findNextBookingByItemId(itemId)).thenReturn(optionalBooking);
-
-        Booking result = bookingService.findNextBookingByItemId(itemId);
-
-        assertNotNull(result);
-        assertEquals(booking, result);
-
-        verify(mockBookingRepository, times(1)).findNextBookingByItemId(itemId);
-    }
-
-    @Test
-    public void shouldReturnHasUserBookedItem() {
-        Long userId = 1L;
-        Long itemId = 1L;
-        createTestObjects();
-
-        when(mockBookingRepository.findByBookerIdAndItemIdAndEndIsBeforeAndStatus(eq(userId), eq(itemId), any(LocalDateTime.class),
-                eq(BookingStatus.APPROVED))).thenReturn(bookings);
-
-        Boolean result = bookingService.hasUserBookedItem(userId, itemId);
-
-        assertNotNull(result);
-        assertTrue(result);
-
-        verify(mockBookingRepository, times(1)).findByBookerIdAndItemIdAndEndIsBeforeAndStatus(eq(userId), eq(itemId),
-                any(LocalDateTime.class), eq(BookingStatus.APPROVED));
-    }
-
-    private void createTestObjects() {
+    private final int from = 0;
+    private final int size = 20;
+
+    @BeforeEach
+    public void preparation() {
         owner = User.builder()
-            .id(1L)
-            .name("Bill Gates")
-            .email("gates@microsoft.com")
-            .build();
+                .id(1L)
+                .name("Bill Gates")
+                .email("gates@microsoft.com")
+                .build();
 
         booker = User.builder()
-            .id(2L)
-            .name("Timothy Sales")
-            .email("sales@xerox.com")
-            .build();
+                .id(2L)
+                .name("Timothy Sales")
+                .email("sales@xerox.com")
+                .build();
 
-        item = Item.builder()
-            .id(1L)
-            .name("Simple tool")
-            .description("Not provided")
-            .owner(owner)
-            .available(true)
-            .build();
+        Item item = Item.builder()
+                .id(1L)
+                .name("Simple tool")
+                .description("Not provided")
+                .owner(owner)
+                .available(true)
+                .build();
 
         Item item2 = Item.builder()
                 .id(2L)
@@ -578,13 +111,13 @@ class BookingServiceImplTest {
         bookingRequestDto.setEnd(end);
 
         booking = Booking.builder()
-            .id(1L)
-            .start(start)
-            .end(end)
-            .bookerId(booker.getId())
-            .itemId(item.getId())
-            .status(BookingStatus.WAITING)
-            .build();
+                .id(1L)
+                .start(start)
+                .end(end)
+                .bookerId(booker.getId())
+                .itemId(item.getId())
+                .status(BookingStatus.WAITING)
+                .build();
 
         booking2 = Booking.builder()
                 .id(2L)
@@ -620,15 +153,15 @@ class BookingServiceImplTest {
                 .build();
 
         bookingResponseDto = BookingResponseDto.builder()
-            .id(1L)
-            .booker(userResponseDto)
-            .item(itemResponseDto)
-            .start(start)
-            .end(end)
-            .status(BookingStatus.WAITING)
-            .build();
+                .id(1L)
+                .booker(userResponseDto)
+                .item(itemResponseDto)
+                .start(start)
+                .end(end)
+                .status(BookingStatus.WAITING)
+                .build();
 
-        bookingResponseDto2 = BookingResponseDto.builder()
+        BookingResponseDto bookingResponseDto2 = BookingResponseDto.builder()
                 .id(2L)
                 .booker(userResponseDto)
                 .item(itemResponseDto2)
@@ -641,6 +174,318 @@ class BookingServiceImplTest {
         bookingsDto = List.of(bookingResponseDto, bookingResponseDto2);
 
         pageable = PageRequest.of(0, 20, SORT_BY_START_DESC);
-        resultBookings = new ArrayList<>(bookings);
+
+        when(mockItemService.findById(item.getId())).thenReturn(item);
+        when(mockUserService.findUserById(booker.getId())).thenReturn(booker);
+        when(mockUserService.findUserById(owner.getId())).thenReturn(owner);
+
+        when(mockBookingMapper.toBooking(bookingRequestDto)).thenReturn(booking);
+        when(mockBookingMapper.toBookingResponseDto(booking)).thenReturn(bookingResponseDto);
+        when(mockBookingMapper.toBookingResponseDto(booking2)).thenReturn(bookingResponseDto2);
+
+        when(mockBookingRepository.save(Mockito.any(Booking.class))).thenReturn(booking);
+        when(mockBookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
+    }
+
+    @Test
+    public void shouldCreateBooking() {
+        BookingResponseDto result = bookingService.create(bookingRequestDto, booker.getId());
+
+        assertNotNull(result);
+        assertEquals(result, bookingResponseDto);
+
+        verify(mockItemService, times(1)).findById(booking.getItemId());
+        verify(mockUserService, times(1)).findUserById(booker.getId());
+        verify(mockBookingMapper, times(1)).toBooking(bookingRequestDto);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingRepository, times(1)).save(booking);
+    }
+
+    @Test
+    public void shouldApproveBooking() {
+        BookingResponseDto result = bookingService.approve(booking.getId(), owner.getId(), true);
+
+        assertNotNull(result);
+        assertEquals(bookingResponseDto, result);
+
+        verify(mockBookingRepository, times(1)).findById(booking.getId());
+        verify(mockItemService, times(1)).findById(booking.getItemId());
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingRepository, times(1)).save(booking);
+    }
+
+    @Test
+    public void shouldFindByIdAndUserId() {
+        Long bookingId = 1L;
+        Long userId = 1L;
+
+        BookingResponseDto result = bookingService.findByIdAndUserId(bookingId, userId);
+
+        assertNotNull(result);
+        assertEquals(bookingResponseDto, result);
+
+        verify(mockBookingRepository, times(1)).findById(bookingId);
+        verify(mockItemService, times(1)).findById(booking.getItemId());
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+    }
+
+    @Test
+    public void shouldFindById() {
+        Long bookingId = 1L;
+
+        BookingResponseDto result = bookingService.findById(bookingId);
+
+        assertNotNull(result);
+        assertEquals(bookingResponseDto, result);
+
+        verify(mockBookingRepository, times(1)).findById(bookingId);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStateALL() {
+        Long userId = 1L;
+        String state = "ALL";
+
+        when(mockBookingRepository.findByBookerId(userId, pageable)).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerId(userId, pageable);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStateFUTURE() {
+        Long userId = 1L;
+        String state = "FUTURE";
+        int from = 0;
+        int size = 20;
+
+        when(mockBookingRepository.findByBookerIdAndStartIsAfter(eq(userId), any(LocalDateTime.class), eq(pageable)))
+                .thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerIdAndStartIsAfter(eq(userId),
+                any(LocalDateTime.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStatePAST() {
+        Long userId = 1L;
+        String state = "PAST";
+
+        when(mockBookingRepository.findByBookerIdAndEndIsBefore(eq(userId), any(LocalDateTime.class), eq(pageable)))
+                .thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerIdAndEndIsBefore(eq(userId),
+                any(LocalDateTime.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStateCURRENT() {
+        Long userId = 1L;
+        String state = "CURRENT";
+
+        when(mockBookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(eq(userId), any(LocalDateTime.class),
+                any(LocalDateTime.class), eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerIdAndStartIsBeforeAndEndIsAfter(eq(userId),
+                any(LocalDateTime.class), any(LocalDateTime.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStateWAITING() {
+        Long userId = 1L;
+        String state = "WAITING";
+
+        when(mockBookingRepository.findByBookerIdAndStatusOrderByStartDesc(eq(userId), any(BookingStatus.class),
+                eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerIdAndStatusOrderByStartDesc(eq(userId),
+                any(BookingStatus.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByUserIdAndStateREJECTED() {
+        Long userId = 1L;
+        String state = "REJECTED";
+
+        when(mockBookingRepository.findByBookerIdAndStatusOrderByStartDesc(eq(userId), any(BookingStatus.class),
+                eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByUserIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByBookerIdAndStatusOrderByStartDesc(eq(userId),
+                any(BookingStatus.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStateALL() {
+        Long userId = 1L;
+        String state = "ALL";
+
+        when(mockBookingRepository.findByOwnerId(owner, pageable)).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerId(owner, pageable);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStateFUTURE() {
+        Long userId = 1L;
+        String state = "FUTURE";
+
+        when(mockBookingRepository.findByOwnerIdInFuture(eq(owner), eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerIdInFuture(eq(owner), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStatePAST() {
+        Long userId = 1L;
+        String state = "PAST";
+
+        when(mockBookingRepository.findByOwnerIdInPast(eq(owner), eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerIdInPast(eq(owner), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStateCURRENT() {
+        Long userId = 1L;
+        String state = "CURRENT";
+
+        when(mockBookingRepository.findByOwnerIdInCurrent(eq(owner), eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerIdInCurrent(eq(owner), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStateWAITING() {
+        Long userId = 1L;
+        String state = "WAITING";
+
+        when(mockBookingRepository.findByOwnerIdAndStatus(eq(owner), any(BookingStatus.class),
+                eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerIdAndStatus(eq(owner),
+                any(BookingStatus.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnBookingsByOwnerIdAndStateREJECTED() {
+        Long userId = 1L;
+        String state = "REJECTED";
+
+        when(mockBookingRepository.findByOwnerIdAndStatus(eq(owner), any(BookingStatus.class),
+                eq(pageable))).thenReturn(bookings);
+
+        List<BookingResponseDto> result = bookingService.findByOwnerIdAndState(userId, state, from, size);
+
+        commonBookingsDtoAsserts(result);
+        verify(mockBookingRepository, times(1)).findByOwnerIdAndStatus(eq(owner),
+                any(BookingStatus.class), eq(pageable));
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking);
+        verify(mockBookingMapper, times(1)).toBookingResponseDto(booking2);
+    }
+
+    @Test
+    public void shouldReturnLastBooking() {
+        Long itemId = 1L;
+
+        when(mockBookingRepository.findLastBookingByItemId(itemId)).thenReturn(Optional.of(booking));
+        Booking result = bookingService.findLastBookingByItemId(itemId);
+
+        assertNotNull(result);
+        assertEquals(booking, result);
+
+        verify(mockBookingRepository, times(1)).findLastBookingByItemId(itemId);
+    }
+
+    @Test
+    public void shouldReturnNextBooking() {
+        Long itemId = 1L;
+
+        when(mockBookingRepository.findNextBookingByItemId(itemId)).thenReturn(Optional.of(booking));
+
+        Booking result = bookingService.findNextBookingByItemId(itemId);
+
+        assertNotNull(result);
+        assertEquals(booking, result);
+
+        verify(mockBookingRepository, times(1)).findNextBookingByItemId(itemId);
+    }
+
+    @Test
+    public void shouldReturnHasUserBookedItem() {
+        Long userId = 1L;
+        Long itemId = 1L;
+
+        when(mockBookingRepository.findByBookerIdAndItemIdAndEndIsBeforeAndStatus(eq(userId), eq(itemId),
+                any(LocalDateTime.class), eq(BookingStatus.APPROVED))).thenReturn(bookings);
+
+        Boolean result = bookingService.hasUserBookedItem(userId, itemId);
+
+        assertNotNull(result);
+        assertTrue(result);
+
+        verify(mockBookingRepository, times(1)).findByBookerIdAndItemIdAndEndIsBeforeAndStatus(eq(userId), eq(itemId),
+                any(LocalDateTime.class), eq(BookingStatus.APPROVED));
+    }
+
+    private void commonBookingsDtoAsserts(List<BookingResponseDto> result) {
+        assertNotNull(result);
+        assertEquals(bookingsDto.size(), result.size());
+
+        IntStream.range(0, result.size()).forEach(i -> assertEquals(bookingsDto.get(i), result.get(i)));
     }
 }
