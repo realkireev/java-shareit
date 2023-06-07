@@ -275,7 +275,7 @@ public class UserControllerTest {
 
     @Nested
     @DisplayName("Returns 404 Not Found")
-    class shouldReturnNotFound {
+    class ShouldReturnNotFound {
         @Test
         @Order(1)
         public void shouldReturnUserNotFound() throws Exception {
@@ -289,7 +289,7 @@ public class UserControllerTest {
 
     @Nested
     @DisplayName("Returns 409 Conflict")
-    class shouldReturnConflicts {
+    class ShouldReturnConflicts {
         @BeforeEach
         public void preparation() throws Exception {
             String body = createJson("John Johnson", "cool@hacker.ru");
@@ -337,7 +337,7 @@ public class UserControllerTest {
 
     @Nested
     @DisplayName("Returns 400 Bad Request")
-    class shouldReturnBadRequest {
+    class ShouldReturnBadRequest {
         @Test
         @Order(1)
         public void shouldReturnBadRequestWithoutEmail() throws Exception {
