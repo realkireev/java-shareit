@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.controller.item;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,13 +12,20 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.Variables.CONTENT_TYPE;
+import static ru.practicum.shareit.Variables.USER_HEADER;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,8 +36,6 @@ public class ItemControllerTest {
     @Autowired
     private MockMvc mockMvc;
     private static final String ENDPOINT = "/items";
-    private static final String CONTENT_TYPE = "application/json";
-    private static final String HEADER_OWNER_ID = "X-Sharer-User-Id";
 
     @Test
     @Order(1)
@@ -44,7 +49,7 @@ public class ItemControllerTest {
 
         createUser(1);
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -80,7 +85,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -97,7 +102,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, null);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -115,7 +120,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -133,7 +138,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -151,7 +156,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -169,7 +174,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -188,7 +193,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -228,7 +233,7 @@ public class ItemControllerTest {
         String body = createJson(name, description, available);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -245,7 +250,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(expectedId))
@@ -266,7 +271,7 @@ public class ItemControllerTest {
         String body = createJson(null, null, available);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -287,7 +292,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(expectedId))
@@ -308,7 +313,7 @@ public class ItemControllerTest {
         String body = createJson(null, description, null);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -329,7 +334,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(expectedId))
@@ -350,7 +355,7 @@ public class ItemControllerTest {
         String body = createJson(name, null, null);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -371,7 +376,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(expectedId))
@@ -392,7 +397,7 @@ public class ItemControllerTest {
 
         createUser(2);
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -413,7 +418,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -433,7 +438,7 @@ public class ItemControllerTest {
         long ownerId = 2L;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -503,7 +508,7 @@ public class ItemControllerTest {
         String body = createJson(null, null, available);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -558,7 +563,7 @@ public class ItemControllerTest {
         String body = createJson(null, null, available);
 
         mockMvc.perform(patch(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -624,7 +629,7 @@ public class ItemControllerTest {
         long ownerId = 2L;
 
         mockMvc.perform(delete(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -639,7 +644,7 @@ public class ItemControllerTest {
         long ownerId = 1L;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -655,7 +660,7 @@ public class ItemControllerTest {
         long ownerId = 2L;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -687,7 +692,7 @@ public class ItemControllerTest {
 
         createUser(3);
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_OWNER_ID, ownerId)
+                        .header(USER_HEADER, ownerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())

@@ -3,13 +3,18 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.dto.UserRequestDto;
+import ru.practicum.shareit.user.dto.UserResponseDto;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repo.UserRepository;
-import java.util.Collection;
+
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +22,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User create(User user) {
+    public UserResponseDto create(UserRequestDto userRequestDto) {
+        User user = UserMapper.toUser(userRequestDto);
         User createdUser;
 
         try {
@@ -26,18 +32,20 @@ public class UserServiceImpl implements UserService {
             throw new EmailAlreadyExistsException(String.format("Email %s already exists!", user.getEmail()));
         }
 
-        return createdUser;
+        return UserMapper.toUserResponseDto(createdUser);
     }
 
     @Override
-    public User update(User user, Long userId) {
+    public UserResponseDto update(UserRequestDto userRequestDto, Long userId) {
         User storedUser = getUserByIdOrThrowException(userId);
+        User user = UserMapper.toUser(userRequestDto);
         String email = user.getEmail();
 
-        if (userRepository.findByEmailContainingIgnoreCase(email)
-                .stream()
-                .anyMatch(x -> !Objects.equals(x.getId(), userId))) {
-            throw new EmailAlreadyExistsException(String.format("Email %s already exists!", email));
+        List<User> users = userRepository.findByEmailContainingIgnoreCase(email);
+        if (users != null) {
+            if (users.stream().anyMatch(x -> !Objects.equals(x.getId(), userId))) {
+                throw new EmailAlreadyExistsException(String.format("Email %s already exists!", email));
+            }
         }
 
         String newName = user.getName();
@@ -51,7 +59,7 @@ public class UserServiceImpl implements UserService {
             storedUser.setEmail(newEmail);
         }
 
-        return userRepository.save(storedUser);
+        return UserMapper.toUserResponseDto(userRepository.save(storedUser));
     }
 
     @Override
@@ -61,12 +69,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<User> findAll() {
-        return userRepository.findAll();
+    public List<UserResponseDto> findAll() {
+        return userRepository.findAll().stream().map(UserMapper::toUserResponseDto).collect(Collectors.toList());
     }
 
     @Override
-    public User findById(Long userId) {
+    public UserResponseDto findById(Long userId) {
+        return UserMapper.toUserResponseDto(findUserById(userId));
+    }
+
+    @Override
+    public User findUserById(Long userId) {
         return getUserByIdOrThrowException(userId);
     }
 

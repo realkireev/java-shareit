@@ -1,14 +1,20 @@
 package ru.practicum.shareit.user.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.user.dto.UserRequestDto;
 import ru.practicum.shareit.user.dto.UserResponseDto;
-import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+
 import javax.validation.Valid;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -18,14 +24,14 @@ public class UserController {
 
     @PostMapping
     public UserResponseDto create(@Valid @RequestBody UserRequestDto userRequestDto) {
-        return UserMapper.toUserResponseDto(userService.create(UserMapper.toUser(userRequestDto)));
+        return userService.create(userRequestDto);
     }
 
     @PatchMapping("/{userId}")
     public UserResponseDto update(
             @RequestBody UserRequestDto userRequestDto,
             @PathVariable Long userId) {
-        return UserMapper.toUserResponseDto(userService.update(UserMapper.toUser(userRequestDto), userId));
+        return userService.update(userRequestDto, userId);
     }
 
     @DeleteMapping("/{userId}")
@@ -34,14 +40,12 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<UserResponseDto> findAll() {
-        return userService.findAll().stream()
-                .map(UserMapper::toUserResponseDto)
-                .collect(Collectors.toList());
+    public List<UserResponseDto> findAll() {
+        return userService.findAll();
     }
 
     @GetMapping("/{userId}")
     public UserResponseDto findById(@PathVariable Long userId) {
-        return UserMapper.toUserResponseDto(userService.findById(userId));
+        return userService.findById(userId);
     }
 }

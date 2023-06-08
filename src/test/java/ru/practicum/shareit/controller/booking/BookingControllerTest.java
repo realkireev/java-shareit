@@ -1,9 +1,12 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.controller.booking;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,6 +17,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -21,12 +25,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static ru.practicum.shareit.Variables.CONTENT_TYPE;
+import static ru.practicum.shareit.Variables.USER_HEADER;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,10 +47,7 @@ public class BookingControllerTest {
     @Autowired
     private MockMvc mockMvc;
     private static final String ENDPOINT = "/bookings";
-    private static final String CONTENT_TYPE = "application/json";
-    private static final String HEADER_USER_ID = "X-Sharer-User-Id";
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
     private final List<User> users = createUserObjects();
 
     private final Item item1 = Item.builder()
@@ -125,7 +132,7 @@ public class BookingControllerTest {
             .itemId(item2.getId())
             .bookerId(users.get(0).getId())
             .start(LocalDateTime.now().plusSeconds(3))
-            .end(LocalDateTime.now().plusSeconds(4))
+            .end(LocalDateTime.now().plusSeconds(5))
             .status(BookingStatus.WAITING)
             .build();
 
@@ -160,7 +167,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -181,7 +188,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -199,7 +206,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -217,7 +224,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -235,7 +242,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -252,7 +259,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, start);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -269,7 +276,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, null, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -286,7 +293,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, null);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -304,7 +311,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -317,7 +324,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(booking1.getItemId(), booking1.getStart(), booking1.getEnd());
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, booking1.getBookerId())
+                        .header(USER_HEADER, booking1.getBookerId())
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -338,7 +345,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking1.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking1.getId()))
@@ -355,7 +362,7 @@ public class BookingControllerTest {
         long bookerId = 1;
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, bookerId)
+                        .header(USER_HEADER, bookerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -376,7 +383,7 @@ public class BookingControllerTest {
         long bookerId = 1;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-            .header(HEADER_USER_ID, bookerId))
+            .header(USER_HEADER, bookerId))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(booking2.getId()))
@@ -393,7 +400,7 @@ public class BookingControllerTest {
         long ownerId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/" + expectedId)
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking2.getId()))
@@ -409,7 +416,7 @@ public class BookingControllerTest {
         long userId = 100;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -420,7 +427,7 @@ public class BookingControllerTest {
         long ownerId = 100;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -431,7 +438,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -455,7 +462,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "ALL"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -479,7 +486,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "FUTURE"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -503,7 +510,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "UNSUPPORTED_STATUS"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -515,7 +522,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -538,7 +545,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "ALL"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -562,7 +569,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "FUTURE"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -586,7 +593,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "UNSUPPORTED_STATE"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -599,7 +606,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/" + bookingId)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -611,7 +618,7 @@ public class BookingControllerTest {
         long userId = 5;
 
         mockMvc.perform(get(ENDPOINT + "/" + bookingId)
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -623,7 +630,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking2.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -635,7 +642,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking2.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -647,7 +654,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking2.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking2.getId()))
@@ -664,7 +671,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking2.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -680,7 +687,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(itemId, start, end);
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -693,7 +700,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(booking3.getItemId(), booking3.getStart(), booking3.getEnd());
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, booking3.getBookerId())
+                        .header(USER_HEADER, booking3.getBookerId())
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -713,7 +720,7 @@ public class BookingControllerTest {
         long ownerId = 1;
         mockMvc.perform(patch(ENDPOINT + "/" + booking3.getId())
                         .queryParam("approved", "false")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking3.getId()))
@@ -730,7 +737,7 @@ public class BookingControllerTest {
         long bookerId = 5;
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, bookerId)
+                        .header(USER_HEADER, bookerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -751,7 +758,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking4.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking4.getId()))
@@ -767,7 +774,7 @@ public class BookingControllerTest {
         long ownerId = 4;
 
         mockMvc.perform(get("/items/" + item2.getId())
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -785,7 +792,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get("/items/" + item2.getId())
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -802,7 +809,7 @@ public class BookingControllerTest {
         long userId = 5;
 
         mockMvc.perform(get("/items/" + item2.getId())
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -819,7 +826,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get("/items")
-                        .header(HEADER_USER_ID, userId))
+                        .header(USER_HEADER, userId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(item2.getId()))
@@ -838,7 +845,7 @@ public class BookingControllerTest {
         long bookerId = 1;
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, bookerId)
+                        .header(USER_HEADER, bookerId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -858,7 +865,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "WAITING"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -876,7 +883,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "WAITING"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -894,7 +901,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(booking6.getItemId(), booking6.getStart(), booking6.getEnd());
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, booking1.getBookerId())
+                        .header(USER_HEADER, booking1.getBookerId())
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -915,7 +922,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking5.getId())
                         .queryParam("approved", "false")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking5.getId()))
@@ -931,7 +938,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "REJECTED"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -949,7 +956,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "REJECTED"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -968,7 +975,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking6.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking6.getId()))
@@ -983,7 +990,7 @@ public class BookingControllerTest {
     public void shouldReturnItem1ByUser1() throws Exception {
         long ownerId = 1;
 
-        mockMvc.perform(get("/items/1").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/1").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item1.getId()))
@@ -999,7 +1006,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(booking7.getItemId(), booking7.getStart(), booking7.getEnd());
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, booking7.getBookerId())
+                        .header(USER_HEADER, booking7.getBookerId())
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1019,7 +1026,7 @@ public class BookingControllerTest {
         String body = createJsonBooking(booking8.getItemId(), booking8.getStart(), booking8.getEnd());
 
         mockMvc.perform(post(ENDPOINT)
-                        .header(HEADER_USER_ID, booking8.getBookerId())
+                        .header(USER_HEADER, booking8.getBookerId())
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1040,7 +1047,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking8.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking8.getId()))
@@ -1055,7 +1062,7 @@ public class BookingControllerTest {
     public void shouldReturnItem2ByUser1WithoutComments() throws Exception {
         long ownerId = 1;
 
-        mockMvc.perform(get("/items/2").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/2").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -1070,7 +1077,7 @@ public class BookingControllerTest {
     public void shouldReturnItem2ByUser4OwnerWithoutComments() throws Exception {
         long ownerId = 4;
 
-        mockMvc.perform(get("/items/2").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/2").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -1089,7 +1096,7 @@ public class BookingControllerTest {
         String url = String.format("/items/%d/comment", itemId);
 
         mockMvc.perform(post(url)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1105,7 +1112,7 @@ public class BookingControllerTest {
         String url = String.format("/items/%d/comment", itemId);
 
         mockMvc.perform(post(url)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1115,7 +1122,7 @@ public class BookingControllerTest {
     @Test
     @Order(56)
     public void shouldCreateCommentByUser1ForItem2() throws Exception {
-        Thread.sleep(3000);
+        Thread.sleep(3500);
 
         long userId = 1;
         long itemId = 2;
@@ -1123,7 +1130,7 @@ public class BookingControllerTest {
         String url = String.format("/items/%d/comment", itemId);
 
         mockMvc.perform(post(url)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1139,7 +1146,7 @@ public class BookingControllerTest {
     public void shouldReturnItem2ByUser1WithComments() throws Exception {
         long ownerId = 1;
 
-        mockMvc.perform(get("/items/2").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/2").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -1158,7 +1165,7 @@ public class BookingControllerTest {
     public void shouldReturnItem2ByUser4OwnerWithComments() throws Exception {
         long ownerId = 4;
 
-        mockMvc.perform(get("/items/2").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/2").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item2.getId()))
@@ -1179,7 +1186,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(patch(ENDPOINT + "/" + booking7.getId())
                         .queryParam("approved", "true")
-                        .header(HEADER_USER_ID, ownerId))
+                        .header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(booking7.getId()))
@@ -1198,7 +1205,7 @@ public class BookingControllerTest {
         String url = String.format("/items/%d/comment", itemId);
 
         mockMvc.perform(post(url)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .contentType(CONTENT_TYPE)
                         .content(body))
                 .andDo(print())
@@ -1211,7 +1218,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "CURRENT"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -1241,7 +1248,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT + "/owner")
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "CURRENT"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -1265,7 +1272,7 @@ public class BookingControllerTest {
         long userId = 1;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "PAST"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -1283,7 +1290,7 @@ public class BookingControllerTest {
         long userId = 4;
 
         mockMvc.perform(get(ENDPOINT)
-                        .header(HEADER_USER_ID, userId)
+                        .header(USER_HEADER, userId)
                         .param("state", "PAST"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -1295,7 +1302,7 @@ public class BookingControllerTest {
     public void shouldReturnItem6ByUser4OwnerWithoutComments() throws Exception {
         long ownerId = 4;
 
-        mockMvc.perform(get("/items/3").header(HEADER_USER_ID, ownerId))
+        mockMvc.perform(get("/items/3").header(USER_HEADER, ownerId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item3.getId()))
@@ -1303,6 +1310,116 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$.description").value(item3.getDescription()))
                 .andExpect(jsonPath("$.available").value(true))
                 .andExpect(jsonPath("$.comments", hasSize(0)));
+    }
+
+    @Test
+    @Order(66)
+    public void shouldReturnBadRequestOnGetAllWithFrom0Size0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(USER_HEADER, userId)
+                        .param("from", "0")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(67)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFrom0Size0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(USER_HEADER, userId)
+                        .param("from", "0")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(68)
+    public void shouldReturnBadRequestOnGetAllWithFromNegativeSize0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(USER_HEADER, userId)
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(69)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFromNegativeSize0() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(USER_HEADER, userId)
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(70)
+    public void shouldReturnBadRequestOnGetAllWithFrom0SizeNegative() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(USER_HEADER, userId)
+                        .param("from", "0")
+                        .param("size", "-1"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(71)
+    public void shouldReturnBadRequestOnOwnerGetAllWithFrom0SizeNegative() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(USER_HEADER, userId)
+                        .param("from", "0")
+                        .param("size", "-1"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(72)
+    public void shouldReturnBooking8OnGetAllWithFrom4Size2() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT)
+                        .header(USER_HEADER, userId)
+                        .param("from", "4")
+                        .param("size", "2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    @Order(73)
+    public void shouldReturnBooking3OnGetAllForOwnerWithFrom1Size1() throws Exception {
+        long userId = 1;
+
+        mockMvc.perform(get(ENDPOINT + "/owner")
+                        .header(USER_HEADER, userId)
+                        .param("from", "1")
+                        .param("size", "1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(booking3.getId()))
+                .andExpect(jsonPath("$[0].item.id").value(item1.getId()))
+                .andExpect(jsonPath("$[0].item.name").value(item1.getName()))
+                .andExpect(jsonPath("$[0].item.description").value(item1.getDescription()));
     }
 
     private void sendRequestsToCreateEntities() throws Exception {
@@ -1350,7 +1467,7 @@ public class BookingControllerTest {
         String body = objectMapper.writeValueAsString(item);
 
         mockMvc.perform(post("/items")
-                .header(HEADER_USER_ID, item.getOwner().getId())
+                .header(USER_HEADER, item.getOwner().getId())
                 .contentType(CONTENT_TYPE)
                 .content(body));
     }
@@ -1359,7 +1476,7 @@ public class BookingControllerTest {
         String body = objectMapper.writeValueAsString(item);
 
         mockMvc.perform(patch("/items/" + item.getId())
-                .header(HEADER_USER_ID, item.getOwner().getId())
+                .header(USER_HEADER, item.getOwner().getId())
                 .contentType(CONTENT_TYPE)
                 .content(body));
     }

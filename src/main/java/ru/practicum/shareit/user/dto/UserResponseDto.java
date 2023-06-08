@@ -1,12 +1,14 @@
 package ru.practicum.shareit.user.dto;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class UserResponseDto {
-    private final long id;
-    private final String email;
-    private final String name;
+    private long id;
+    private String email;
+    private String name;
 }

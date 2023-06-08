@@ -1,10 +1,13 @@
 package ru.practicum.shareit.item.dto.item;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Data
+@Getter
+@Setter
 public class ItemRequestDto {
     @NotBlank
     private String name;
@@ -14,4 +17,6 @@ public class ItemRequestDto {
 
     @NotNull
     private Boolean available;
+
+    private Long requestId;
 }
