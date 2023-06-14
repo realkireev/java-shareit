@@ -28,7 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(classes = UserServiceImplTest.class)
 public class UserServiceImplTest {
     @Mock
     private UserRepository mockUserRepository;

@@ -31,7 +31,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(classes = ItemServiceImplTest.class)
 public class ItemServiceImplTest {
     @Mock
     private UserService mockUserService;

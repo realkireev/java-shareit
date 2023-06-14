@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ru.practicum.shareit.Variables.SORT_BY_START_DESC;
 
-@SpringBootTest
+@SpringBootTest(classes = BookingServiceImplTest.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class BookingServiceImplTest {
     @Mock
