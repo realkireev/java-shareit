@@ -29,13 +29,13 @@ services:
     container_name: db-container
     volumes:
       - /var/lib/postgresql/data/
-      - ./init-scripts:/docker-entrypoint-initdb.d
     ports:
       - "6541:5432"
     environment:
-      - DB_NAME=shareit
+      - POSTGRES_DB=shareit
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=root
       - DB_HOST=db
       - DB_PORT=5432
+      - DB_NAME=shareit
       - TZ=Europe/Moscow
