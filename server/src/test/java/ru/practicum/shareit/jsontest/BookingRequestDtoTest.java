@@ -6,9 +6,6 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -18,9 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BookingRequestDtoTest {
     @Autowired
     private JacksonTester<BookingRequestDto> jsonTester;
-
-    private final ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-    private final Validator validator = validatorFactory.getValidator();
 
     @Test
     public void testSerializeToJson() throws Exception {
@@ -52,43 +46,4 @@ public class BookingRequestDtoTest {
         assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2023, 5, 28, 12, 0, 0));
         assertThat(dto.getEnd()).isEqualTo(LocalDateTime.of(2023, 5, 28, 14, 0, 0));
     }
-
-    @Test
-    public void testValidBookingRequestDto() {
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(1L);
-        dto.setStart(LocalDateTime.now().plusSeconds(3));
-        dto.setEnd(LocalDateTime.now().plusHours(2));
-
-        assertThat(validator.validate(dto)).isEmpty();
-    }
-
-//    @Test
-//    public void testMissingItemId() {
-//        BookingRequestDto dto = new BookingRequestDto();
-//        dto.setStart(LocalDateTime.now().plusSeconds(3));
-//        dto.setEnd(LocalDateTime.now().plusHours(2));
-//
-//        assertThat(validator.validate(dto)).hasSize(1);
-//    }
-//
-//    @Test
-//    public void testInvalidStart() {
-//        BookingRequestDto dto = new BookingRequestDto();
-//        dto.setItemId(1L);
-//        dto.setStart(LocalDateTime.now().plusHours(2));
-//        dto.setEnd(LocalDateTime.now().plusHours(1));
-//
-//        assertThat(validator.validate(dto)).hasSize(1);
-//    }
-//
-//    @Test
-//    public void testInvalidEnd() {
-//        BookingRequestDto dto = new BookingRequestDto();
-//        dto.setItemId(1L);
-//        dto.setStart(LocalDateTime.now().plusSeconds(3));
-//        dto.setEnd(LocalDateTime.now().minusHours(1));
-//
-//        assertThat(validator.validate(dto)).hasSizeGreaterThan(0);
-//    }
 }

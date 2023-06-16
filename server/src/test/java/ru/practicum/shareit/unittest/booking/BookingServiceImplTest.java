@@ -37,7 +37,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static ru.practicum.shareit.Variables.SORT_BY_START_DESC;
+import static ru.practicum.shareit.common.Variables.SORT_BY_START_DESC;
 
 @SpringBootTest(classes = BookingServiceImplTest.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

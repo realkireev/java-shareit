@@ -15,7 +15,7 @@ import ru.practicum.shareit.request.service.RequestService;
 
 import java.util.List;
 
-import static ru.practicum.shareit.Variables.USER_HEADER;
+import static ru.practicum.shareit.common.Variables.USER_HEADER;
 
 @RequiredArgsConstructor
 @RestController

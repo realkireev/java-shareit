@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItGateway;
-import ru.practicum.shareit.booking.cacheservice.BookingCacheService;
+import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
@@ -49,7 +49,7 @@ public class BookingControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private BookingCacheService bookingCacheService;
+    private BookingClient mockBookingClient;
 
     @InjectMocks
     private BookingController bookingController;
@@ -69,13 +69,13 @@ public class BookingControllerTest {
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1,
                 ItemResponseDto.builder().build(), UserResponseDto.builder().build(), start, end);
 
-        when(bookingCacheService.create(userId, bookingRequestDto)).thenReturn(expectedDto);
+        when(mockBookingClient.create(userId, bookingRequestDto)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = bookingController.create(bookingRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(bookingCacheService, times(1)).create(userId, bookingRequestDto);
+        verify(mockBookingClient, times(1)).create(userId, bookingRequestDto);
     }
 
     @Test
@@ -89,13 +89,13 @@ public class BookingControllerTest {
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1,
                 ItemResponseDto.builder().build(), UserResponseDto.builder().build(), start, end);
 
-        when(bookingCacheService.approve(bookingId, userId, true)).thenReturn(expectedDto);
+        when(mockBookingClient.approve(bookingId, userId, true)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = bookingController.approve(true, bookingId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(bookingCacheService, times(1)).approve(bookingId, userId, true);
+        verify(mockBookingClient, times(1)).approve(bookingId, userId, true);
     }
 
     @Test
@@ -109,13 +109,13 @@ public class BookingControllerTest {
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1,
                 ItemResponseDto.builder().build(), UserResponseDto.builder().build(), start, end);
 
-        when(bookingCacheService.findById(bookingId, userId)).thenReturn(expectedDto);
+        when(mockBookingClient.findById(bookingId, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = bookingController.findById(bookingId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(bookingCacheService, times(1)).findById(bookingId, userId);
+        verify(mockBookingClient, times(1)).findById(bookingId, userId);
     }
 
     @Test
@@ -233,13 +233,13 @@ public class BookingControllerTest {
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1,
                 ItemResponseDto.builder().build(), UserResponseDto.builder().build(), start, end);
 
-        when(bookingCacheService.findAllByUserIdAndState(userId, "ALL", 0, 20)).thenReturn(expectedDto);
+        when(mockBookingClient.findAllByUserIdAndState(userId, "ALL", 0, 20)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = bookingController.findAllByUserIdAndState(userId, "ALL", 0, 20);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(bookingCacheService, times(1)).findAllByUserIdAndState(userId, "ALL", 0, 20);
+        verify(mockBookingClient, times(1)).findAllByUserIdAndState(userId, "ALL", 0, 20);
     }
 
     @Test
@@ -252,13 +252,13 @@ public class BookingControllerTest {
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1,
                 ItemResponseDto.builder().build(), UserResponseDto.builder().build(), start, end);
 
-        when(bookingCacheService.findAllByOwnerIdAndState(userId, "ALL", 0, 20)).thenReturn(expectedDto);
+        when(mockBookingClient.findAllByOwnerIdAndState(userId, "ALL", 0, 20)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = bookingController.findAllByOwnerIdAndState(userId, "ALL", 0, 20);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(bookingCacheService, times(1)).findAllByOwnerIdAndState(userId, "ALL", 0, 20);
+        verify(mockBookingClient, times(1)).findAllByOwnerIdAndState(userId, "ALL", 0, 20);
     }
 
     @Test

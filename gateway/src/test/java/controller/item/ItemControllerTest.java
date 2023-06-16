@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItGateway;
-import ru.practicum.shareit.item.cacheservice.ItemCacheService;
+import ru.practicum.shareit.item.client.ItemClient;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
@@ -45,7 +45,7 @@ public class ItemControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private ItemCacheService mockItemCacheService;
+    private ItemClient mockItemClient;
 
     @InjectMocks
     private ItemController itemController;
@@ -62,13 +62,13 @@ public class ItemControllerTest {
         ItemRequestDto itemRequestDto = getItemRequestDto(name, description, available);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, name, description, available);
 
-        when(mockItemCacheService.create(itemRequestDto, userId)).thenReturn(expectedDto);
+        when(mockItemClient.create(itemRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.create(itemRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).create(itemRequestDto, userId);
+        verify(mockItemClient, times(1)).create(itemRequestDto, userId);
     }
 
     @Test
@@ -97,13 +97,13 @@ public class ItemControllerTest {
         ItemRequestDto itemRequestDto = getItemRequestDto(name, description, available);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, name, description, available);
 
-        when(mockItemCacheService.update(itemRequestDto, itemId, userId)).thenReturn(expectedDto);
+        when(mockItemClient.update(itemRequestDto, itemId, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.update(itemRequestDto, itemId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).update(itemRequestDto, itemId, userId);
+        verify(mockItemClient, times(1)).update(itemRequestDto, itemId, userId);
     }
 
     @Test
@@ -205,13 +205,13 @@ public class ItemControllerTest {
         boolean available = true;
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, name, description, available);
 
-        when(mockItemCacheService.findByOwnerId(userId)).thenReturn(expectedDto);
+        when(mockItemClient.findByOwnerId(userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.findByOwnerId(userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).findByOwnerId(userId);
+        verify(mockItemClient, times(1)).findByOwnerId(userId);
     }
 
     @Test
@@ -242,13 +242,13 @@ public class ItemControllerTest {
         boolean available = true;
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, name, description, available);
 
-        when(mockItemCacheService.findById(itemId, userId)).thenReturn(expectedDto);
+        when(mockItemClient.findById(itemId, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.findById(itemId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).findById(itemId, userId);
+        verify(mockItemClient, times(1)).findById(itemId, userId);
     }
 
     @Test
@@ -261,13 +261,13 @@ public class ItemControllerTest {
         boolean available = true;
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, name, description, available);
 
-        when(mockItemCacheService.search(text)).thenReturn(expectedDto);
+        when(mockItemClient.search(text)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.search(text);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).search(text);
+        verify(mockItemClient, times(1)).search(text);
     }
 
     @Test
@@ -277,13 +277,13 @@ public class ItemControllerTest {
         long userId = 1;
         ResponseEntity<Object> expectedDto = ResponseEntity.ok().build();
 
-        when(mockItemCacheService.delete(itemId, userId)).thenReturn(expectedDto);
+        when(mockItemClient.delete(itemId, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.delete(itemId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).delete(itemId, userId);
+        verify(mockItemClient, times(1)).delete(itemId, userId);
     }
 
     @Test
@@ -294,13 +294,13 @@ public class ItemControllerTest {
         ResponseEntity<Object> expectedDto = ResponseEntity.ok().build();
         CommentRequestDto commentRequestDto = new CommentRequestDto();
 
-        when(mockItemCacheService.addComment(userId, itemId, commentRequestDto)).thenReturn(expectedDto);
+        when(mockItemClient.addComment(userId, itemId, commentRequestDto)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = itemController.addComment(userId, itemId, commentRequestDto);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockItemCacheService, times(1)).addComment(userId, itemId, commentRequestDto);
+        verify(mockItemClient, times(1)).addComment(userId, itemId, commentRequestDto);
     }
 
     private String createJson(String name, String description, Boolean available) throws JsonProcessingException {

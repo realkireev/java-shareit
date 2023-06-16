@@ -21,7 +21,7 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
-import static ru.practicum.shareit.Variables.USER_HEADER;
+import static ru.practicum.shareit.common.Variables.USER_HEADER;
 
 @RestController
 @RequestMapping("/items")

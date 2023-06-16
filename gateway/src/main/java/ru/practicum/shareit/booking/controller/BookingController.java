@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.practicum.shareit.booking.cacheservice.BookingCacheService;
+import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
 import javax.validation.Valid;
@@ -27,14 +27,14 @@ import static ru.practicum.shareit.common.Variables.USER_HEADER;
 @RequiredArgsConstructor
 @Validated
 public class BookingController {
-    private final BookingCacheService bookingCacheService;
+    private final BookingClient bookingClient;
 
     @PostMapping
     public ResponseEntity<Object> create(
             @Valid @RequestBody BookingRequestDto bookingRequestDto,
             @RequestHeader(USER_HEADER) @NotNull Long bookerId) {
 
-        return bookingCacheService.create(bookerId, bookingRequestDto);
+        return bookingClient.create(bookerId, bookingRequestDto);
     }
 
     @PatchMapping("/{bookingId}")
@@ -42,14 +42,14 @@ public class BookingController {
             @RequestParam Boolean approved,
             @PathVariable Long bookingId,
             @RequestHeader(USER_HEADER) @NotNull Long ownerId) {
-        return bookingCacheService.approve(bookingId, ownerId, approved);
+        return bookingClient.approve(bookingId, ownerId, approved);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> findById(
             @PathVariable Long bookingId,
             @RequestHeader(USER_HEADER) @NotNull Long userId) {
-        return bookingCacheService.findById(userId, bookingId);
+        return bookingClient.findById(userId, bookingId);
     }
 
     @GetMapping
@@ -58,7 +58,7 @@ public class BookingController {
             @RequestParam(defaultValue = "ALL") String state,
             @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
             @Positive @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
-        return bookingCacheService.findAllByUserIdAndState(userId, state, from, size);
+        return bookingClient.findAllByUserIdAndState(userId, state, from, size);
     }
 
     @GetMapping("/owner")
@@ -67,6 +67,6 @@ public class BookingController {
             @RequestParam(defaultValue = "ALL") String state,
             @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") int from,
             @Positive @RequestParam(name = "size", required = false, defaultValue = "20") Integer size) {
-        return bookingCacheService.findAllByOwnerIdAndState(ownerId, state, from, size);
+        return bookingClient.findAllByOwnerIdAndState(ownerId, state, from, size);
     }
 }

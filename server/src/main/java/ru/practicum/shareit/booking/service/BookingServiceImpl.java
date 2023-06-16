@@ -13,6 +13,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.RequestBookingState;
 import ru.practicum.shareit.booking.repo.BookingRepository;
+import ru.practicum.shareit.common.MethodInfo;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -22,11 +23,13 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.Variables.SORT_BY_START_DESC;
+import static ru.practicum.shareit.common.Variables.SORT_BY_START_DESC;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -34,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingMapper bookingMapper;
+    private final Map<MethodInfo, List<BookingResponseDto>> cache = new HashMap<>();
 
     @Autowired
     public BookingServiceImpl(
@@ -64,6 +68,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.WAITING);
+        cache.clear();
         return bookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }
 
@@ -91,109 +96,151 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(BookingStatus.REJECTED);
         }
 
+        cache.clear();
         return bookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }
 
     @Override
     public BookingResponseDto findByIdAndUserId(Long bookingId, Long userId) {
+        MethodInfo methodInfo = new MethodInfo("findByIdAndUserId", bookingId, userId);
+        if (cache.containsKey(methodInfo)) {
+            return cache.get(methodInfo).get(0);
+        }
+
         Booking booking = findBookingById(bookingId);
         BookingResponseDto bookingResponseDto = bookingMapper.toBookingResponseDto(booking);
+        BookingResponseDto result = null;
 
         if (booking.getBookerId().equals(userId)) {
             // Returns booking only for the booker ...
-            return bookingResponseDto;
+            result = bookingResponseDto;
         }
 
         Item item = itemService.findById(booking.getItemId());
         if (item.getOwner().getId().equals(userId)) {
             // ... or for the owner
-            return bookingResponseDto;
+            result = bookingResponseDto;
         }
 
-        throw new BookingNotFoundException(String.format("Booking with id %d not found for user with id %d", bookingId,
-                userId));
+        if (result == null) {
+            throw new BookingNotFoundException(String.format("Booking with id %d not found for user with id %d",
+                    bookingId, userId));
+        }
+
+        cache.put(methodInfo, List.of(result));
+        return result;
     }
 
     @Override
     public BookingResponseDto findById(Long bookingId) {
+        MethodInfo methodInfo = new MethodInfo("findById", bookingId, bookingId);
+        if (cache.containsKey(methodInfo)) {
+            return cache.get(methodInfo).get(0);
+        }
+
         Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
         if (optionalBooking.isEmpty()) {
             throw new BookingNotFoundException(String.format("Booking with id %d not found", bookingId));
         }
 
-        return bookingMapper.toBookingResponseDto(optionalBooking.get());
+        BookingResponseDto result = bookingMapper.toBookingResponseDto(optionalBooking.get());
+        cache.put(methodInfo, List.of(result));
+
+        return result;
     }
 
     @Override
     public List<BookingResponseDto> findByUserIdAndState(Long userId, String state, int from, int size) {
         checkUserExists(userId);
-        List<Booking> result = Collections.emptyList();
+
+        MethodInfo methodInfo = new MethodInfo("findByUserIdAndState", userId, state, from, size);
+        if (cache.containsKey(methodInfo)) {
+            return cache.get(methodInfo);
+        }
+
+        List<Booking> bookingList = Collections.emptyList();
 
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size, SORT_BY_START_DESC);
 
         switch (RequestBookingState.valueOf(state)) {
             case ALL:
-                result = bookingRepository.findByBookerId(userId, pageable);
+                bookingList = bookingRepository.findByBookerId(userId, pageable);
                 break;
 
             case FUTURE:
-                result = bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), pageable);
+                bookingList = bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), pageable);
                 break;
 
             case PAST:
-                result = bookingRepository.findByBookerIdAndEndIsBefore(userId, LocalDateTime.now(), pageable);
+                bookingList = bookingRepository.findByBookerIdAndEndIsBefore(userId, LocalDateTime.now(), pageable);
                 break;
 
             case CURRENT:
-                result = bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(),
+                bookingList = bookingRepository.findByBookerIdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(),
                         LocalDateTime.now(), pageable);
                 break;
 
             case WAITING:
             case REJECTED:
                 BookingStatus bookingStatus = BookingStatus.valueOf(state);
-                result = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, bookingStatus, pageable);
+                bookingList = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, bookingStatus, pageable);
                 break;
         }
 
-        return result.stream().map(bookingMapper::toBookingResponseDto).collect(Collectors.toList());
+        List<BookingResponseDto> result = bookingList.stream()
+                .map(bookingMapper::toBookingResponseDto)
+                .collect(Collectors.toList());
+
+        cache.put(methodInfo, result);
+        return result;
     }
 
     @Override
     public List<BookingResponseDto> findByOwnerIdAndState(Long ownerId, String state, int from, int size) {
         User owner = checkUserExists(ownerId);
-        List<Booking> result = Collections.emptyList();
+
+        MethodInfo methodInfo = new MethodInfo("findByOwnerIdAndState", ownerId, state, from, size);
+        if (cache.containsKey(methodInfo)) {
+            return cache.get(methodInfo);
+        }
+
+        List<Booking> bookingList = Collections.emptyList();
 
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size, SORT_BY_START_DESC);
 
         switch (RequestBookingState.valueOf(state)) {
             case ALL:
-                result = bookingRepository.findByOwnerId(owner, pageable);
+                bookingList = bookingRepository.findByOwnerId(owner, pageable);
                 break;
 
             case FUTURE:
-                result = bookingRepository.findByOwnerIdInFuture(owner, pageable);
+                bookingList = bookingRepository.findByOwnerIdInFuture(owner, pageable);
                 break;
 
             case PAST:
-                result = bookingRepository.findByOwnerIdInPast(owner, pageable);
+                bookingList = bookingRepository.findByOwnerIdInPast(owner, pageable);
                 break;
 
             case CURRENT:
-                result = bookingRepository.findByOwnerIdInCurrent(owner, pageable);
+                bookingList = bookingRepository.findByOwnerIdInCurrent(owner, pageable);
                 break;
 
             case WAITING:
             case REJECTED:
                 BookingStatus bookingStatus = BookingStatus.valueOf(state);
 
-                result = bookingRepository.findByOwnerIdAndStatus(owner, bookingStatus, pageable);
+                bookingList = bookingRepository.findByOwnerIdAndStatus(owner, bookingStatus, pageable);
                 break;
         }
 
-        return result.stream().map(bookingMapper::toBookingResponseDto).collect(Collectors.toList());
+        List<BookingResponseDto> result = bookingList.stream()
+                .map(bookingMapper::toBookingResponseDto)
+                .collect(Collectors.toList());
+
+        cache.put(methodInfo, result);
+        return result;
     }
 
     @Override

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ru.practicum.shareit.user.cacheservice.UserCacheService;
+import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.user.dto.UserRequestDto;
 
 import javax.validation.Valid;
@@ -21,32 +21,32 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @Validated
 public class UserController {
-    private final UserCacheService userCacheService;
+    private final UserClient userClient;
 
     @PostMapping
     public ResponseEntity<Object> create(@Valid @RequestBody UserRequestDto userRequestDto) {
-        return userCacheService.create(userRequestDto);
+        return userClient.create(userRequestDto);
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<Object> update(
             @RequestBody UserRequestDto userRequestDto,
             @PathVariable Long userId) {
-        return userCacheService.update(userRequestDto, userId);
+        return userClient.update(userRequestDto, userId);
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Object> delete(@PathVariable Long userId) {
-        return userCacheService.delete(userId);
+        return userClient.delete(userId);
     }
 
     @GetMapping
     public ResponseEntity<Object> findAll() {
-        return userCacheService.findAll();
+        return userClient.findAll();
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<Object> findById(@PathVariable Long userId) {
-        return userCacheService.findById(userId);
+        return userClient.findById(userId);
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItGateway;
-import ru.practicum.shareit.user.cacheservice.UserCacheService;
+import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.user.controller.UserController;
 import ru.practicum.shareit.user.dto.UserRequestDto;
 import ru.practicum.shareit.user.dto.UserResponseDto;
@@ -47,7 +47,7 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private UserCacheService userCacheService;
+    private UserClient mockUserClient;
 
     @InjectMocks
     private UserController userController;
@@ -63,13 +63,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.create(userRequestDto)).thenReturn(expectedDto);
+        when(mockUserClient.create(userRequestDto)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.create(userRequestDto);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).create(any(UserRequestDto.class));
+        verify(mockUserClient, times(1)).create(any(UserRequestDto.class));
     }
 
     @Test
@@ -81,13 +81,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.update(userRequestDto, userId)).thenReturn(expectedDto);
+        when(mockUserClient.update(userRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.update(userRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).update(any(UserRequestDto.class), anyLong());
+        verify(mockUserClient, times(1)).update(any(UserRequestDto.class), anyLong());
     }
 
     @Test
@@ -99,13 +99,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.create(userRequestDto)).thenReturn(expectedDto);
+        when(mockUserClient.create(userRequestDto)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.create(userRequestDto);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).create(any(UserRequestDto.class));
+        verify(mockUserClient, times(1)).create(any(UserRequestDto.class));
     }
 
     @Test
@@ -117,13 +117,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.update(userRequestDto, userId)).thenReturn(expectedDto);
+        when(mockUserClient.update(userRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.update(userRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).update(any(UserRequestDto.class), anyLong());
+        verify(mockUserClient, times(1)).update(any(UserRequestDto.class), anyLong());
     }
 
     @Test
@@ -135,13 +135,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.update(userRequestDto, userId)).thenReturn(expectedDto);
+        when(mockUserClient.update(userRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.update(userRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).update(any(UserRequestDto.class), anyLong());
+        verify(mockUserClient, times(1)).update(any(UserRequestDto.class), anyLong());
     }
 
     @Test
@@ -153,13 +153,13 @@ public class UserControllerTest {
         UserRequestDto userRequestDto = getUserRequestDto(name, email);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.update(userRequestDto, userId)).thenReturn(expectedDto);
+        when(mockUserClient.update(userRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.update(userRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).update(any(UserRequestDto.class), anyLong());
+        verify(mockUserClient, times(1)).update(any(UserRequestDto.class), anyLong());
     }
 
     @Test
@@ -171,13 +171,13 @@ public class UserControllerTest {
 
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(userId, name, email);
 
-        when(userCacheService.findById(userId)).thenReturn(expectedDto);
+        when(mockUserClient.findById(userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.findById(userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).findById(anyLong());
+        verify(mockUserClient, times(1)).findById(anyLong());
     }
 
     @Test
@@ -188,13 +188,13 @@ public class UserControllerTest {
 
         ResponseEntity<Object> expectedDto = new ResponseEntity<>(List.of(user1, user2), HttpStatus.OK);
 
-        when(userCacheService.findAll()).thenReturn(expectedDto);
+        when(mockUserClient.findAll()).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.findAll();
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).findAll();
+        verify(mockUserClient, times(1)).findAll();
     }
 
     @Test
@@ -203,13 +203,13 @@ public class UserControllerTest {
         long userId = 1;
         ResponseEntity<Object> expectedDto = ResponseEntity.ok().build();
 
-        when(userCacheService.delete(userId)).thenReturn(expectedDto);
+        when(mockUserClient.delete(userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = userController.delete(userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(userCacheService, times(1)).delete(anyLong());
+        verify(mockUserClient, times(1)).delete(anyLong());
     }
 
 
@@ -221,13 +221,13 @@ public class UserControllerTest {
         public void shouldReturnUserNotFound() throws Exception {
             long userId = 682;
             ResponseEntity<Object> expectedDto = ResponseEntity.notFound().build();
-            when(userCacheService.findById(userId)).thenReturn(expectedDto);
+            when(mockUserClient.findById(userId)).thenReturn(expectedDto);
 
             ResponseEntity<Object> result = userController.findById(userId);
 
             assertEquals(result.getBody(), expectedDto.getBody());
             assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-            verify(userCacheService, times(1)).findById(anyLong());
+            verify(mockUserClient, times(1)).findById(anyLong());
         }
     }
 
@@ -240,25 +240,25 @@ public class UserControllerTest {
         @Test
         @Order(1)
         public void shouldReturnConflictWithDuplicatedEmail() throws Exception {
-            when(userCacheService.create(userRequestDto)).thenReturn(expectedDto);
+            when(mockUserClient.create(userRequestDto)).thenReturn(expectedDto);
 
             ResponseEntity<Object> result = userController.create(userRequestDto);
 
             assertEquals(result.getBody(), expectedDto.getBody());
             assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-            verify(userCacheService, times(1)).create(any(UserRequestDto.class));
+            verify(mockUserClient, times(1)).create(any(UserRequestDto.class));
         }
 
         @Test
         @Order(2)
         public void shouldReturnConflictWhenUpdateWithDuplicatedEmail() throws Exception {
-            when(userCacheService.update(userRequestDto, 1L)).thenReturn(expectedDto);
+            when(mockUserClient.update(userRequestDto, 1L)).thenReturn(expectedDto);
 
             ResponseEntity<Object> result = userController.update(userRequestDto, 1L);
 
             assertEquals(result.getBody(), expectedDto.getBody());
             assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-            verify(userCacheService, times(1)).update(any(UserRequestDto.class), anyLong());
+            verify(mockUserClient, times(1)).update(any(UserRequestDto.class), anyLong());
         }
     }
 

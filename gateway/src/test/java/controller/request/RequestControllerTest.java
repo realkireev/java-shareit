@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItGateway;
-import ru.practicum.shareit.request.cacheservice.RequestCacheService;
+import ru.practicum.shareit.request.client.RequestClient;
 import ru.practicum.shareit.request.controller.RequestController;
 import ru.practicum.shareit.request.dto.RequestRequestDto;
 import ru.practicum.shareit.request.dto.RequestResponseDto;
@@ -44,7 +44,7 @@ public class RequestControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private RequestCacheService mockRequestCacheService;
+    private RequestClient mockRequestClient;
 
     @InjectMocks
     private RequestController requestController;
@@ -59,13 +59,13 @@ public class RequestControllerTest {
         RequestRequestDto requestRequestDto = getRequestRequestDto(description);
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, description);
 
-        when(mockRequestCacheService.create(requestRequestDto, userId)).thenReturn(expectedDto);
+        when(mockRequestClient.create(requestRequestDto, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = requestController.create(requestRequestDto, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockRequestCacheService, times(1)).create(any(RequestRequestDto.class), anyLong());
+        verify(mockRequestClient, times(1)).create(any(RequestRequestDto.class), anyLong());
     }
 
     @Test
@@ -131,13 +131,13 @@ public class RequestControllerTest {
         String description = "Test-Request";
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, description);
 
-        when(mockRequestCacheService.findByUserId(userId)).thenReturn(expectedDto);
+        when(mockRequestClient.findByUserId(userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = requestController.findByUserId(userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockRequestCacheService, times(1)).findByUserId(anyLong());
+        verify(mockRequestClient, times(1)).findByUserId(anyLong());
     }
 
     @Test
@@ -147,13 +147,13 @@ public class RequestControllerTest {
         String description = "Test-Request";
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(1, description);
 
-        when(mockRequestCacheService.findAll(userId, 0, 20)).thenReturn(expectedDto);
+        when(mockRequestClient.findAll(userId, 0, 20)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = requestController.findAll(userId, 0, 20);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockRequestCacheService, times(1)).findAll(anyLong(), anyInt(), anyInt());
+        verify(mockRequestClient, times(1)).findAll(anyLong(), anyInt(), anyInt());
     }
 
     @Test
@@ -164,13 +164,13 @@ public class RequestControllerTest {
         String description = "Test-Request";
         ResponseEntity<Object> expectedDto = getExpectedResponseResult(requestId, description);
 
-        when(mockRequestCacheService.findById(requestId, userId)).thenReturn(expectedDto);
+        when(mockRequestClient.findById(requestId, userId)).thenReturn(expectedDto);
 
         ResponseEntity<Object> result = requestController.findById(requestId, userId);
 
         assertEquals(result.getBody(), expectedDto.getBody());
         assertEquals(result.getStatusCode(), expectedDto.getStatusCode());
-        verify(mockRequestCacheService, times(1)).findById(anyLong(), anyLong());
+        verify(mockRequestClient, times(1)).findById(anyLong(), anyLong());
     }
 
     @Test

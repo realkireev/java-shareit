@@ -29,8 +29,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.practicum.shareit.Variables.CONTENT_TYPE;
-import static ru.practicum.shareit.Variables.USER_HEADER;
+import static ru.practicum.shareit.common.Variables.CONTENT_TYPE;
+import static ru.practicum.shareit.common.Variables.USER_HEADER;
 
 @SpringBootTest
 @AutoConfigureMockMvc

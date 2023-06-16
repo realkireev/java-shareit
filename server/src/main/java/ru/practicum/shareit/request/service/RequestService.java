@@ -13,4 +13,6 @@ public interface RequestService {
     List<RequestResponseDto> findByUserId(Long userId);
 
     List<RequestResponseDto> findAllWithPagination(Long userId, int from, int size);
+
+    void clearCache();
 }

@@ -21,7 +21,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static ru.practicum.shareit.Variables.SORT_BY_START_DESC;
+import static ru.practicum.shareit.common.Variables.SORT_BY_START_DESC;
 
 @DataJpaTest
 @AutoConfigureTestDatabase
