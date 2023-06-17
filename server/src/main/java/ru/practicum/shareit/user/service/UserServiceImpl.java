@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.common.MethodInfo;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.dto.UserRequestDto;
 import ru.practicum.shareit.user.dto.UserResponseDto;
@@ -12,9 +11,7 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repo.UserRepository;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,7 +20,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final Map<MethodInfo, List<UserResponseDto>> cache = new HashMap<>();
 
     @Override
     public UserResponseDto create(UserRequestDto userRequestDto) {
@@ -36,7 +32,6 @@ public class UserServiceImpl implements UserService {
             throw new EmailAlreadyExistsException(String.format("Email %s already exists!", user.getEmail()));
         }
 
-        cache.clear();
         return UserMapper.toUserResponseDto(createdUser);
     }
 
@@ -64,45 +59,26 @@ public class UserServiceImpl implements UserService {
             storedUser.setEmail(newEmail);
         }
 
-        cache.clear();
         return UserMapper.toUserResponseDto(userRepository.save(storedUser));
     }
 
     @Override
     public void delete(Long userId) {
         User user = getUserByIdOrThrowException(userId);
-        cache.clear();
         userRepository.delete(user);
     }
 
     @Override
     public List<UserResponseDto> findAll() {
-        MethodInfo methodInfo = new MethodInfo("findAll");
 
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo);
-        }
-
-        List<UserResponseDto> result = userRepository.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserResponseDto)
                 .collect(Collectors.toList());
-
-        cache.put(methodInfo, result);
-        return result;
     }
 
     @Override
     public UserResponseDto findById(Long userId) {
-        MethodInfo methodInfo = new MethodInfo("findById", userId);
-
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo).get(0);
-        }
-
-        UserResponseDto result = UserMapper.toUserResponseDto(findUserById(userId));
-        cache.put(methodInfo, List.of(result));
-
-        return result;
+        return UserMapper.toUserResponseDto(findUserById(userId));
     }
 
     @Override

@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.common.MethodInfo;
 import ru.practicum.shareit.item.dto.comment.CommentMapper;
 import ru.practicum.shareit.item.dto.comment.CommentRequestDto;
 import ru.practicum.shareit.item.dto.comment.CommentResponseDto;
@@ -17,16 +16,13 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repo.CommentRepository;
 import ru.practicum.shareit.item.repo.ItemRepository;
-import ru.practicum.shareit.request.service.RequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,11 +32,8 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingService bookingService;
-    private final RequestService requestService;
     private final ItemRepository itemRepository;
     private final CommentRepository commentRepository;
-    private final Map<MethodInfo, List<ItemResponseDto>> itemResponseDtoCache = new HashMap<>();
-    private final Map<MethodInfo, List<ItemWithBookingsDto>> itemWithBookingsDtoCache = new HashMap<>();
 
     @Override
     public ItemResponseDto create(Item item, Long ownerId) {
@@ -51,11 +44,8 @@ public class ItemServiceImpl implements ItemService {
 
         if (item.getRequestId() != null) {
             itemRepository.saveItemBoundWithRequest(createdItem.getId(), item.getRequestId());
-            requestService.clearCache();
         }
 
-        itemResponseDtoCache.clear();
-        itemWithBookingsDtoCache.clear();
         return ItemMapper.toItemResponseDto(createdItem);
     }
 
@@ -77,8 +67,6 @@ public class ItemServiceImpl implements ItemService {
             storedItem.setAvailable(available);
         }
 
-        itemResponseDtoCache.clear();
-        itemWithBookingsDtoCache.clear();
         return ItemMapper.toItemResponseDto(itemRepository.save(storedItem));
     }
 
@@ -89,12 +77,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemWithBookingsDto> findByOwnerId(Long ownerId) {
-        MethodInfo methodInfo = new MethodInfo("findByOwnerId", ownerId);
-
-        if (itemWithBookingsDtoCache.containsKey(methodInfo)) {
-            return itemWithBookingsDtoCache.get(methodInfo);
-        }
-
         List<ItemWithBookingsDto> result;
 
         result = itemRepository.findByOwnerId(ownerId).stream()
@@ -102,7 +84,6 @@ public class ItemServiceImpl implements ItemService {
                 .map(this::addBookingsToItem)
                 .collect(Collectors.toList());
 
-        itemWithBookingsDtoCache.put(methodInfo, result);
         return result;
     }
 
@@ -112,37 +93,22 @@ public class ItemServiceImpl implements ItemService {
             return Collections.emptyList();
         }
 
-        MethodInfo methodInfo = new MethodInfo("search", searchText);
-        if (itemResponseDtoCache.containsKey(methodInfo)) {
-            return itemResponseDtoCache.get(methodInfo);
-        }
-
-        List<ItemResponseDto> result = itemRepository.searchByNameOrDescriptionIgnoreCaseAndAvailable(
+        return itemRepository.searchByNameOrDescriptionIgnoreCaseAndAvailable(
                 searchText.toLowerCase())
                 .stream()
                 .map(ItemMapper::toItemResponseDto)
                 .collect(Collectors.toList());
-
-        itemResponseDtoCache.put(methodInfo, result);
-        return result;
     }
 
     @Override
     public void delete(Long itemId, Long ownerId) {
         Item storedItem = getStoredItemAndCheckOwner(itemId, ownerId);
-        itemResponseDtoCache.clear();
-        itemWithBookingsDtoCache.clear();
 
         itemRepository.delete(storedItem);
     }
 
     @Override
     public ItemWithBookingsDto findByIdWithBookings(Long itemId, Long userId) {
-        MethodInfo methodInfo = new MethodInfo("findByIdWithBookings", itemId, userId);
-        if (itemWithBookingsDtoCache.containsKey(methodInfo)) {
-            return itemWithBookingsDtoCache.get(methodInfo).get(0);
-        }
-
         Item item = getItemByIdOrThrowException(itemId);
         ItemWithBookingsDto result;
 
@@ -153,7 +119,6 @@ public class ItemServiceImpl implements ItemService {
             // don't add booking information for others
             result = ItemMapper.toItemWithBookingsDto(item, null, null);
         }
-        itemWithBookingsDtoCache.put(methodInfo, List.of(result));
         return result;
     }
 
@@ -172,8 +137,6 @@ public class ItemServiceImpl implements ItemService {
         comment.setItem(item);
         comment.setCreated(LocalDateTime.now());
 
-        itemResponseDtoCache.clear();
-        itemWithBookingsDtoCache.clear();
         return CommentMapper.toCommentResponseDto(commentRepository.save(comment));
     }
 

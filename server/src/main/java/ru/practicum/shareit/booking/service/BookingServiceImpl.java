@@ -13,7 +13,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.RequestBookingState;
 import ru.practicum.shareit.booking.repo.BookingRepository;
-import ru.practicum.shareit.common.MethodInfo;
 import ru.practicum.shareit.item.exception.ItemNotAvailableException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -23,9 +22,7 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,7 +34,6 @@ public class BookingServiceImpl implements BookingService {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingMapper bookingMapper;
-    private final Map<MethodInfo, List<BookingResponseDto>> cache = new HashMap<>();
 
     @Autowired
     public BookingServiceImpl(
@@ -68,7 +64,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.WAITING);
-        cache.clear();
         return bookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }
 
@@ -96,17 +91,11 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(BookingStatus.REJECTED);
         }
 
-        cache.clear();
         return bookingMapper.toBookingResponseDto(bookingRepository.save(booking));
     }
 
     @Override
     public BookingResponseDto findByIdAndUserId(Long bookingId, Long userId) {
-        MethodInfo methodInfo = new MethodInfo("findByIdAndUserId", bookingId, userId);
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo).get(0);
-        }
-
         Booking booking = findBookingById(bookingId);
         BookingResponseDto bookingResponseDto = bookingMapper.toBookingResponseDto(booking);
         BookingResponseDto result = null;
@@ -127,36 +116,22 @@ public class BookingServiceImpl implements BookingService {
                     bookingId, userId));
         }
 
-        cache.put(methodInfo, List.of(result));
         return result;
     }
 
     @Override
     public BookingResponseDto findById(Long bookingId) {
-        MethodInfo methodInfo = new MethodInfo("findById", bookingId, bookingId);
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo).get(0);
-        }
-
         Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
         if (optionalBooking.isEmpty()) {
             throw new BookingNotFoundException(String.format("Booking with id %d not found", bookingId));
         }
 
-        BookingResponseDto result = bookingMapper.toBookingResponseDto(optionalBooking.get());
-        cache.put(methodInfo, List.of(result));
-
-        return result;
+        return bookingMapper.toBookingResponseDto(optionalBooking.get());
     }
 
     @Override
     public List<BookingResponseDto> findByUserIdAndState(Long userId, String state, int from, int size) {
         checkUserExists(userId);
-
-        MethodInfo methodInfo = new MethodInfo("findByUserIdAndState", userId, state, from, size);
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo);
-        }
 
         List<Booking> bookingList = Collections.emptyList();
 
@@ -188,22 +163,14 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
 
-        List<BookingResponseDto> result = bookingList.stream()
+        return bookingList.stream()
                 .map(bookingMapper::toBookingResponseDto)
                 .collect(Collectors.toList());
-
-        cache.put(methodInfo, result);
-        return result;
     }
 
     @Override
     public List<BookingResponseDto> findByOwnerIdAndState(Long ownerId, String state, int from, int size) {
         User owner = checkUserExists(ownerId);
-
-        MethodInfo methodInfo = new MethodInfo("findByOwnerIdAndState", ownerId, state, from, size);
-        if (cache.containsKey(methodInfo)) {
-            return cache.get(methodInfo);
-        }
 
         List<Booking> bookingList = Collections.emptyList();
 
@@ -235,12 +202,9 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
 
-        List<BookingResponseDto> result = bookingList.stream()
+        return bookingList.stream()
                 .map(bookingMapper::toBookingResponseDto)
                 .collect(Collectors.toList());
-
-        cache.put(methodInfo, result);
-        return result;
     }
 
     @Override
